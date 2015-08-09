@@ -94,7 +94,7 @@ def find_zoneshow_str_from_log(str)
 end
 
 def _definedcfg2defx(all)
-  if all.strip == 'no configuration defined'
+  if all.lstrip.start_with? 'no configuration defined'
     return [{}, {}, {}]
   end
   cfg_str, other = all.split('zone:', 2)
@@ -125,7 +125,7 @@ def _definedcfg2defx(all)
 end
 
 def _effectivecfg2effx(all)
-  if all.strip == 'no configuration in effect'
+  if all.lstrip.start_with? 'no configuration in effect'
     return({})
   end
   cfg_str, zone_str = all.split('zone:', 2)
