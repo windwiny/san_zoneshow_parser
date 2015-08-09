@@ -1,0 +1,262 @@
+# Brocade SAN zoneshow parser
+
+
+class SANZoneShow
+rule
+
+zoneshow    : defx  effx            { result = val }
+            | DEFINED NODEFINED EFFECTIVE NOEFFECTIVE { STDERR.puts " !! not defined and effect"; result = [[{},{},{}], {}] }
+            ; 
+
+defx        : DEFINED cfgs zones aliass { result = [val[1].freeze, val[2].freeze, val[3].freeze] }
+            ;
+    
+effx        : EFFECTIVE CFG NAME ezones { result = { val[2] => val[3].freeze } }
+            ;
+
+cfgs        : cfgs cfg              { result = val[0].merge(val[1]) }
+            | /* none */            { result = {} }
+            ;
+
+cfg         : CFG NAME zns          { result = { val[1] => val[2] } }
+            ;
+
+zns         : zns ';' NAME          { result = val[0] << val[2] }
+            | NAME                  { result = [val[0]] }
+            ;
+
+
+zones       : zones zone            { result = val[0].merge(val[1]) }
+            | /* none */            { result = {} }
+            ;
+
+zone        : ZONE NAME ans         { result = { val[1] => val[2] } }
+            ;
+
+ans         : ans ';' an            { result = val[0] << val[2] }
+            | an                    { result = [val[0]] }
+            | /* none */            { result = [] }
+            ;
+
+an          : NAME
+            | PORT
+            | WWPN
+            ;
+
+aliass      : aliass alias          { result = val[0].merge(val[1]) }
+            | /* none */            { result = {} }
+            ;
+  
+alias       : ALIAS NAME aps        { result = { val[1] => val[2] } }
+            ;
+
+aps         : aps ';' ap            { result = val[0] << val[2] }
+            | ap                    { result = [val[0]] }
+            | /* none */            { result = [] }
+            ;
+
+ap          : PORT
+            | WWPN
+            ;
+
+ezones      : ezones ezone          { result = val[0].merge(val[1]) }
+            | /* none */            { result = {} }
+            ;
+    
+ezone       : ZONE NAME ports       { result = { val[1] => val[2] } }
+            ;
+  
+ports       : ports PORT            { result = val[0] << val[1] }
+            | /* none */            { result = [] }
+            ;
+
+
+  
+end
+
+---- inner
+  def on_error *rr
+    puts "---- on_error   lineno:#{@lineno}"
+    super
+  end
+
+---- header
+require "pp"
+require "shellwords"
+require File.join(File.dirname(__FILE__), "zoneshow.rex")
+
+---- footer
+def find_zoneshow_str_from_log(str)
+  begin_pos = str.rindex(/^\s*Defined configuration:/)
+  return ('') unless begin_pos
+  end_pos = str.index(/^\s*\w+\:\w+\s*\>/, begin_pos) || 0
+  str[begin_pos..end_pos-1]
+end
+
+def _definedcfg2defx(all)
+  if all.strip == 'no configuration defined'
+    return [{}, {}, {}]
+  end
+  cfg_str, other = all.split('zone:', 2)
+  zone_str, ali_str = other.split('alias:', 2)
+
+  cfgs=cfg_str.split('cfg:').map do |s|
+  	s.gsub(";",' ').shellsplit
+  end
+  cfgs.delete([])
+  cfgh = {}
+  cfgs.each do |cfg|
+    cfgh[cfg[0]] = cfg[1..-1]
+  end
+
+  as = {}
+  ali_str.to_s.split("alias:").map do |s|
+  	ss = s.gsub(";",' ').shellsplit
+    as[ss[0]]	= ss[1..-1]
+  end
+
+  zs = {}
+  zone_str.split("zone:").each do |s|
+  	ss = s.gsub(";",' ').shellsplit
+    zs[ss[0]] = ss[1..-1]
+  end
+  
+  [cfgh, zs, as]
+end
+
+def _effectivecfg2effx(all)
+  if all.strip == 'no configuration in effect'
+    return({})
+  end
+  cfg_str, zone_str = all.split('zone:', 2)
+
+  cfgs=cfg_str.split('cfg:')
+  STDERR.puts "Error: effective config size > 1. #{cfg_str}" unless cfgs.size == 2 && cfgs[0].strip == ''
+  cfg_name = cfgs[1].strip
+  
+  zs = {}
+  zone_str.split('zone:').each do |s|
+    ss = s.shellsplit
+    zs[ss[0]] = ss[1..-1]
+  end
+  {cfg_name => zs}
+end
+
+def my_zoneshow_parse(str)
+  defcfg, effcfg = str.sub(/^\s*Defined configuration:/, '').split(/^\s*Effective configuration:/)
+  defx2 = _definedcfg2defx(defcfg)
+  effx2 = _effectivecfg2effx(effcfg)
+  [defx2, effx2]
+end
+
+def create_script_from_defx(defx)
+  cfgs, zones, aliass = defx
+  str_s = []
+  aliass.each do |k, v|
+    vs = v.join(';')
+    STDERR.puts 'Error: alias join have " ' if vs.include?('"')
+    str_s << %{alicreate "#{k}","#{vs}"}
+  end
+  zones.each do |k, v|
+    vs = v.join(';')
+    STDERR.puts 'Error: zone join have " ' if vs.include?('"')
+    str_s << %{zonecreate "#{k}","#{vs}"}
+  end
+  cfgs.each do |k, v|
+    vs = v.join(';')
+    STDERR.puts 'Error: cfg join have " ' if vs.include?('"')
+    str_s << %{cfgcreate "#{k}","#{vs}"}
+  end
+  str_s
+end
+
+def create_script_from_effx(effx)
+  str_s = []
+  effx.each do |k2, v2|
+    v2.each do |k, v|
+      vs = v.join(';')
+      STDERR.puts 'Error: zone join have " ' if vs.include?('"')
+      str_s << %{zonecreate "#{k}","#{vs}"}
+    end
+    vs = v2.keys.join(';')
+    STDERR.puts 'Error: cfg join have " ' if vs.include?('"')
+    str_s << %{cfgcreate "#{k2}","#{vs}"}
+  end
+  str_s
+end
+
+def diff_defx_and_effx(defx, effx)
+  res = defx_split_and_expand_ports(defx)
+  eff_name = effx.keys[0]
+  effx[eff_name] == res[eff_name]
+end
+
+def defx_split_and_expand_ports(defx)
+  cfgs, zones, aliass = defx
+  res = {}
+  cfgs.each do |name, zs|
+    res[name] = z_ = {}
+    zs.each do |zn|
+      z_[zn] = v_ = []
+      zones.fetch(zn).each do |pOwOn|
+        # FIXME TODO
+        v_.concat(/^\d+,\d+$|^\w{2}(:\w{2}){7}$/ =~ pOwOn ? [pOwOn] : aliass.fetch(pOwOn))
+      end
+    end
+  end
+  res
+end
+
+
+if __FILE__ == $0
+  while fn = ARGV.shift
+    if File.file? fn
+      puts "\n----- #{fn} -----\n"
+      zoneshow_s = find_zoneshow_str_from_log(File.binread fn)
+      if zoneshow_s.empty?
+        puts "empty zoneshow\n\n\n"
+        next
+      end
+      
+      px = SANZoneShow.new
+      begin
+        defx, effx = px.scan_str(zoneshow_s)
+      ensure
+      end
+      defx2, effx2 = my_zoneshow_parse(zoneshow_s)
+      puts "\n**** Use RACC Parser result and My Parser result is same?"
+      p [defx==defx2, effx==effx2]
+      unless defx==defx2
+        pp defx,defx2
+      end
+      unless effx==effx2
+        pp effx,effx2
+      end
+      puts
+      
+
+      cfgs, zones, aliass = defx
+      puts "\n**** Defined config have: cfgs: #{cfgs.size}  zones: #{zones.size}  aliass: #{aliass.size}"
+      pp cfgs, zones, aliass
+      
+      puts
+      puts "\n**** Effective config:"
+      pp effx
+      
+      puts "\n**** Show defined config split and expand ports:"
+      res = defx_split_and_expand_ports(defx)
+      pp res
+      
+      puts "\n****  Is effective config and defined config same ?"
+      p diff_defx_and_effx(defx, effx)
+      
+      puts "\n\n**** create_script_from_effx:"
+      puts create_script_from_effx(effx)
+      
+      puts "\n\n**** create_script_from_defx:"
+      puts create_script_from_defx(defx)
+    end
+  end
+
+end
+
