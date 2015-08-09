@@ -101,7 +101,7 @@ def _definedcfg2defx(all)
   zone_str, ali_str = other.split('alias:', 2)
 
   cfgs=cfg_str.split('cfg:').map do |s|
-  	s.gsub(";",' ').shellsplit
+    s.gsub(";",' ').shellsplit
   end
   cfgs.delete([])
   cfgh = {}
@@ -111,13 +111,13 @@ def _definedcfg2defx(all)
 
   as = {}
   ali_str.to_s.split("alias:").map do |s|
-  	ss = s.gsub(";",' ').shellsplit
-    as[ss[0]]	= ss[1..-1]
+    ss = s.gsub(";",' ').shellsplit
+    as[ss[0]] = ss[1..-1]
   end
 
   zs = {}
   zone_str.split("zone:").each do |s|
-  	ss = s.gsub(";",' ').shellsplit
+    ss = s.gsub(";",' ').shellsplit
     zs[ss[0]] = ss[1..-1]
   end
   
