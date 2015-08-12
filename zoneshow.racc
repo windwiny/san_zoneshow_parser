@@ -6,11 +6,11 @@ rule
 
 zoneshow    : defx  effx            { result = val }
             | DEFINED NODEFINED EFFECTIVE NOEFFECTIVE { STDERR.puts " !! not defined and effect"; result = [[{},{},{}], {}] }
-            ; 
+            ;
 
 defx        : DEFINED cfgs zones aliass { result = [val[1].freeze, val[2].freeze, val[3].freeze] }
             ;
-    
+
 effx        : EFFECTIVE CFG NAME ezones { result = { val[2] => val[3].freeze } }
             ;
 
@@ -46,7 +46,7 @@ an          : NAME
 aliass      : aliass alias          { result = val[0].merge(val[1]) }
             | /* none */            { result = {} }
             ;
-  
+
 alias       : ALIAS NAME aps        { result = { val[1] => val[2] } }
             ;
 
@@ -62,16 +62,16 @@ ap          : PORT
 ezones      : ezones ezone          { result = val[0].merge(val[1]) }
             | /* none */            { result = {} }
             ;
-    
+
 ezone       : ZONE NAME ports       { result = { val[1] => val[2] } }
             ;
-  
+
 ports       : ports PORT            { result = val[0] << val[1] }
             | /* none */            { result = [] }
             ;
 
 
-  
+
 end
 
 ---- inner
@@ -120,7 +120,7 @@ def _definedcfg2defx(all)
     ss = s.gsub(";",' ').shellsplit
     zs[ss[0]] = ss[1..-1]
   end
-  
+
   [cfgh, zs, as]
 end
 
@@ -133,7 +133,7 @@ def _effectivecfg2effx(all)
   cfgs=cfg_str.split('cfg:')
   STDERR.puts "Error: effective config size > 1. #{cfg_str}" unless cfgs.size == 2 && cfgs[0].strip == ''
   cfg_name = cfgs[1].strip
-  
+
   zs = {}
   zone_str.split('zone:').each do |s|
     ss = s.shellsplit
@@ -207,56 +207,58 @@ def defx_split_and_expand_ports(defx)
   res
 end
 
+def parse_file(fn)
+  zoneshow_s = find_zoneshow_str_from_log(File.binread fn)
+  if zoneshow_s.empty?
+    puts "empty zoneshow\n\n\n"
+    return
+  end
+
+  px = SANZoneShow.new
+  begin
+    defx, effx = px.scan_str(zoneshow_s)
+  ensure
+  end
+  defx2, effx2 = my_zoneshow_parse(zoneshow_s)
+  puts "\n**** Use RACC Parser result and My Parser result is same?"
+  p [defx==defx2, effx==effx2]
+  unless defx==defx2
+    pp defx,defx2
+  end
+  unless effx==effx2
+    pp effx,effx2
+  end
+  puts
+
+
+  cfgs, zones, aliass = defx
+  puts "\n**** Defined config have: cfgs: #{cfgs.size}  zones: #{zones.size}  aliass: #{aliass.size}"
+  pp({'cfgS'=>cfgs}, {'zoneS'=>zones}, {'aliasS'=>aliass})
+
+  puts
+  puts "\n**** Effective config:"
+  pp effx
+
+  puts "\n**** Show defined config split and expand ports:"
+  res = defx_split_and_expand_ports(defx)
+  pp res
+
+  puts "\n****  Is effective config and defined config same ?"
+  p diff_defx_and_effx(defx, effx)
+
+  puts "\n\n**** create_script_from_effx:"
+  puts create_script_from_effx(effx)
+
+  puts "\n\n**** create_script_from_defx:"
+  puts create_script_from_defx(defx)
+end
 
 if __FILE__ == $0
   while fn = ARGV.shift
     if File.file? fn
       puts "\n----- #{fn} -----\n"
-      zoneshow_s = find_zoneshow_str_from_log(File.binread fn)
-      if zoneshow_s.empty?
-        puts "empty zoneshow\n\n\n"
-        next
-      end
-      
-      px = SANZoneShow.new
-      begin
-        defx, effx = px.scan_str(zoneshow_s)
-      ensure
-      end
-      defx2, effx2 = my_zoneshow_parse(zoneshow_s)
-      puts "\n**** Use RACC Parser result and My Parser result is same?"
-      p [defx==defx2, effx==effx2]
-      unless defx==defx2
-        pp defx,defx2
-      end
-      unless effx==effx2
-        pp effx,effx2
-      end
-      puts
-      
-
-      cfgs, zones, aliass = defx
-      puts "\n**** Defined config have: cfgs: #{cfgs.size}  zones: #{zones.size}  aliass: #{aliass.size}"
-      pp cfgs, zones, aliass
-      
-      puts
-      puts "\n**** Effective config:"
-      pp effx
-      
-      puts "\n**** Show defined config split and expand ports:"
-      res = defx_split_and_expand_ports(defx)
-      pp res
-      
-      puts "\n****  Is effective config and defined config same ?"
-      p diff_defx_and_effx(defx, effx)
-      
-      puts "\n\n**** create_script_from_effx:"
-      puts create_script_from_effx(effx)
-      
-      puts "\n\n**** create_script_from_defx:"
-      puts create_script_from_defx(defx)
+      parse_file(fn)
     end
   end
-
 end
 

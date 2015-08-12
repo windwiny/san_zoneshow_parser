@@ -1,7 +1,7 @@
 class SANZoneShow
 macro
   BLANKS        \s+
-  
+
   defined       Defined\ configuration:
   effective     Effective\ configuration:
   cfg           cfg:
@@ -12,7 +12,7 @@ macro
   noeffective	no\ configuration\ in\ effect
 
 rule
-  
+
   {BLANKS}          #nothing
   {defined}         { [:DEFINED, text] }
   {effective}       { [:EFFECTIVE, text] }
@@ -21,11 +21,11 @@ rule
   {cfg}             { [:CFG, text] }
   {zone}            { [:ZONE, text] }
   {alia}            { [:ALIAS, text] }
-  
-  
+
+
   \d+,\d+           { [:PORT, text] }
   \w{2}(:\w{2}){7}  { [:WWPN, text] }
-  
+
   \w+               { [:NAME, text] }
   .|\n              { [text, text] }
 
