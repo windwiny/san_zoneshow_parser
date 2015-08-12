@@ -77,7 +77,7 @@ void yyerror(const char *e);
 
 
 %union {
-	char c;
+    char c;
     int intv;
     struct list *pl;
     struct hash *ph;
