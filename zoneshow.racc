@@ -167,6 +167,7 @@ def create_script_from_defx(defx)
     STDERR.puts 'Error: cfg join have " ' if vs.include?('"')
     str_s << %{cfgcreate "#{k}","#{vs}"}
   end
+  str_s << '# cfgsave'
   str_s
 end
 
@@ -182,6 +183,7 @@ def create_script_from_effx(effx)
     STDERR.puts 'Error: cfg join have " ' if vs.include?('"')
     str_s << %{cfgcreate "#{k2}","#{vs}"}
   end
+  str_s << '# cfgsave'
   str_s
 end
 
