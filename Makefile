@@ -24,4 +24,4 @@ zoneshow.rex.rb: zoneshow.rex
 	rex $< --stub
 
 diff: all
-	ruby run_diff.rb
+	ruby run_diff.rb ${FILE}

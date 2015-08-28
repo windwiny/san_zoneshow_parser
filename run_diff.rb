@@ -41,7 +41,7 @@ def find_zs_str cfgfn
   zoneshow_s
 end
 
-str = find_zs_str('cfg4.txt')
+str = find_zs_str(ARGV[0] || 'cfg4.txt')
 
 defx0, effx0 = get_bison_pg_ret(str)
 defx1, effx1 = get_racc_pg_ret(str)
