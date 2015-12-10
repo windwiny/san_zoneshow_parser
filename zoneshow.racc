@@ -66,11 +66,13 @@ ezones      : ezones ezone          { result = val[0].merge(val[1]) }
 ezone       : ZONE NAME ports       { result = { val[1] => val[2] } }
             ;
 
-ports       : ports PORT            { result = val[0] << val[1] }
+ports       : ports port            { result = val[0] << val[1] }
             | /* none */            { result = [] }
             ;
 
-
+port        : PORT
+            | WWPN
+            ;
 
 end
 
