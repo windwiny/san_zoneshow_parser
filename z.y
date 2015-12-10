@@ -156,10 +156,13 @@ ezones      : ezones ezone          { $$ = hash_merge($1, $<ph>2) }
 ezone       : ZONE NAME ports       { $$ = inithash($<pc>2, $<pl>3) }
             ;
 
-ports       : ports PORT            { $$ = list_append($1, $<pc>2) }
+ports       : ports port            { $$ = list_append($1, $<pc>2) }
             | /* none */            { $$ = NULL }
             ;
 
+port        : PORT
+            | WWPN
+            ;
 
 
 %%
