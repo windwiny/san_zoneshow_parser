@@ -9,6 +9,7 @@ require 'racc/parser.rb'
 Object.module_eval(<<'...end reformat-san-script.racc/module_eval...', 'reformat-san-script.racc', 94)
 require 'pp'
 require 'fileutils'
+require 'digest'
 # require 'racc'
 require_relative "reformat-san-script.rex"
 
@@ -17,7 +18,7 @@ require_relative "reformat-san-script.rex"
 ...end reformat-san-script.racc/module_eval...
 class SCC < Racc::Parser
 
-module_eval(<<'...end reformat-san-script.racc/module_eval...2', 'reformat-san-script.racc', 102)
+module_eval(<<'...end reformat-san-script.racc/module_eval...2', 'reformat-san-script.racc', 103)
 
 
 ...end reformat-san-script.racc/module_eval...2
@@ -369,7 +370,7 @@ end
 
 end   # class SCC
 
-Object.module_eval(<<'...end reformat-san-script.racc/module_eval...3', 'reformat-san-script.racc', 105)
+Object.module_eval(<<'...end reformat-san-script.racc/module_eval...3', 'reformat-san-script.racc', 106)
 pr = SCC.new
 
 if (['-h', '--help'] & ARGV).size > 0 || ARGV.empty?
@@ -381,9 +382,10 @@ FileUitls.mkdir_p(tmpdir) unless File.directory?(tmpdir)
 $stdoutbk = $stdout
 
 fns = ARGV.map do |fn|
-  tmpfn = "#{tmpdir}/#{Time.now.strftime '%H%M%S'}-#{File.basename fn}-reformat.log"
+  tmpfn = "#{tmpdir}/#{Time.now.strftime '%H%M%S'}-#{Digest::SHA1.new.update(fn)}-reformat.log"
   $stdout = File.open(tmpfn, 'w')
-  puts "filename #{fn}"
+  puts "from filename #{fn}"
+  puts
   $alicreates = {}
   $zonecreates  = {}
   $cfgcreates = {}
@@ -394,7 +396,7 @@ fns = ARGV.map do |fn|
 
   pr.scan_file fn
 
-
+  puts
   $alicreates.sort.each do |k,v|
     puts %{ alicreate "#{k}","#{v}"}
   end
