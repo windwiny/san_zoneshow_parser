@@ -1,0 +1,166 @@
+
+class SCC
+
+rule
+
+main            : others
+                ;
+
+others          : others other
+                |
+                ;
+
+other           : alicreates    { $alicreates.merge!(val[0])  ;      p ['$alicreates',     $alicreates.size] }
+                | zonecreates   { $zonecreates.merge!(val[0])  ;     p ['$zonecreates',    $zonecreates.size] }
+                | cfgcreates    { $cfgcreates.merge!(val[0])  ;      p ['$cfgcreates',     $cfgcreates.size] }
+                | cfgremoves    { }
+                | cfgadds       {
+
+                  ov, nv = $cfgadds, val[0]
+                  k,v=nv.first
+                  result = if v2=ov[k]
+                    ov.merge({k=> v+v2})
+                  else
+                    ov.merge(nv)
+                  end
+
+                  $cfgadds.merge!(result);         p ['$cfgadds',        $cfgadds.map { |k,v| "#{k}:#{v.size}" }] }
+                | 'cfgsave'     { $cfgsave << val[0] ;               p ['$cfgsave',        $cfgsave.size] }
+                | 'cfgenable' '"' NAME '"' { $cfgenable << val[2] ;  p ['$cfgenable',      $cfgenable.size] }
+                ;
+
+domin           : 'dominID' ':' NUMBER { result = "domainID #{val[2]}"; puts result }
+                ;
+
+alicreates      : alicreates alicreate { result = val[0].merge(val[1]) }
+                | alicreate
+                ;
+
+alicreate       : 'alicreate' '"' NAME '","' WWPNorNAME '"' { result = { val[2] => val[4] } }
+                ;
+
+WWPNorNAME      : WWPN | PORT
+                ;
+
+zonecreates     : zonecreates zonecreate { result = val[0].merge(val[1]) }
+                | zonecreate
+                ;
+zonecreate      : 'zonecreate' NAME_NAMES { result = val[1] }
+                ;
+
+NAME_NAMES      : '"' NAME '","' NAMES '"'      { result = { val[1] => val[3] } }
+                ;
+
+NAMES           : NAMES ';' zNAME { result = val[0] << val[2] }
+                | zNAME { result = val }
+                ;
+zNAME           : NAME
+                | WWPN
+                | PORT
+                ;
+
+cfgcreates      : cfgcreates cfgcreate { result = val[0].merge(val[1]) }
+                | cfgcreate
+                ;
+cfgcreate       : 'cfgcreate' NAME_NAMES { result = val[1] }
+                ;
+
+cfgadds         : cfgadds cfgadd {
+                      ov, nv = val[0], val[1]
+                      k,v=nv.first
+                      result = if v2=ov[k]
+                        ov.merge({k=> v+v2})
+                      else
+                        ov.merge(nv)
+                      end
+                   }
+                | cfgadd
+                ;
+cfgadd          : 'cfgadd' NAME_NAMES { result = val[1] }#{ k,v = val[1].first; ($cfgadds[k] ||= []); $cfgadds[k] += v }
+                ;
+cfgremoves      : cfgremoves cfgremove
+                | cfgremove
+                ;
+cfgremove       : 'cfgremove' NAME_NAMES { k,v = val[1].first; ($cfgremoves[k] ||= []); $cfgremoves[k] += v }
+                ;
+
+
+
+
+end
+
+
+----header
+require 'pp'
+require 'fileutils'
+# require 'racc'
+require_relative "reformat-san-script.rex"
+
+
+
+----inner
+
+
+----footer
+pr = SCC.new
+
+if (['-h', '--help'] & ARGV).size > 0 || ARGV.empty?
+  puts "   reformat create script"
+end
+
+tmpdir = File.directory?('/tmp') ? "/tmp/ttt2" : 'c:'
+FileUitls.mkdir_p(tmpdir) unless File.directory?(tmpdir)
+$stdoutbk = $stdout
+
+fns = ARGV.map do |fn|
+  tmpfn = "#{tmpdir}/#{Time.now.strftime '%H%M%S'}-#{File.basename fn}-reformat.log"
+  $stdout = File.open(tmpfn, 'w')
+  puts "filename #{fn}"
+  $alicreates = {}
+  $zonecreates  = {}
+  $cfgcreates = {}
+  $cfgremoves = {}
+  $cfgadds  = {}
+  $cfgsave  = []
+  $cfgenable  = []
+
+  pr.scan_file fn
+
+
+  $alicreates.sort.each do |k,v|
+    puts %{ alicreate "#{k}","#{v}"}
+  end
+  puts
+
+  $zonecreates.sort.each do |k,v|
+    puts %{ zonecreate "#{k}","#{v.sort.join ';'}"}
+  end
+  puts
+
+  $cfgcreates.each do |k,v|
+    puts %{cfgcreate "#{k}","xxx"}
+    v2 = $cfgadds[k].to_a
+    (v+v2).sort.each { |e| puts %{ cfgadd "#{k}","#{e}"} }
+    puts %{cfgremove "#{k}","xxx"}
+  end
+
+  $cfgremoves.each do |k,v|
+    puts %{ cfgremove "#{k}","#{v.sort.join ';'}"}
+  end
+  puts
+
+  puts " # $cfgsave"
+  PP.pp $cfgsave, $>, 120
+
+  puts " # $cfgenable"
+  PP.pp $cfgenable, $>, 120
+
+  $stdout.close
+  $stdout = $stdoutbk
+  tmpfn
+end
+p fns
+
+exec "mvim -d #{fns.join ' '}"
+p 'end.'
+

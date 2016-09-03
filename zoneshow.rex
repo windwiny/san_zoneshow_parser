@@ -1,4 +1,4 @@
-class SANZoneShow
+class SANZoneRaccParser
 macro
   BLANKS        \s+
 
@@ -8,8 +8,8 @@ macro
   zone          zone:
   alia          alias:
 
-  nodefined	no\ configuration\ defined
-  noeffective	no\ configuration\ in\ effect
+  nodefined     no\ configuration\ defined
+  noeffective   no\ configuration\ in\ effect
 
 rule
 

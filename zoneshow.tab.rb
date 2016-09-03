@@ -8,9 +8,10 @@ require 'racc/parser.rb'
 
 require "pp"
 require "shellwords"
+require 'fileutils'
 require File.join(File.dirname(__FILE__), "zoneshow.rex")
 
-class SANZoneShow < Racc::Parser
+class SANZoneRaccParser < Racc::Parser
 
 module_eval(<<'...end zoneshow.racc/module_eval...', 'zoneshow.racc', 80)
   def on_error *rr
@@ -378,181 +379,274 @@ def _reduce_none(val, _values, result)
   val[0]
 end
 
-end   # class SANZoneShow
+end   # class SANZoneRaccParser
 
-def find_zoneshow_str_from_log(str)
-  begin_pos = str.rindex(/^\s*Defined configuration:/)
-  return ('') unless begin_pos
-  end_pos = str.index(/^\s*\w+\:\w+\s*\>/, begin_pos) || 0
-  str[begin_pos..end_pos-1]
-end
 
-def _definedcfg2defx(all)
-  if all.lstrip.start_with? 'no configuration defined'
-    return [{}, {}, {}]
-  end
-  cfg_str, other = all.split('zone:', 2)
-  zone_str, ali_str = other.split('alias:', 2)
-
-  cfgs=cfg_str.split('cfg:').map do |s|
-    s.gsub(";",' ').shellsplit
-  end
-  cfgs.delete([])
-  cfgh = {}
-  cfgs.each do |cfg|
-    cfgh[cfg[0]] = cfg[1..-1]
-  end
-
-  as = {}
-  ali_str.to_s.split("alias:").map do |s|
-    ss = s.gsub(";",' ').shellsplit
-    as[ss[0]] = ss[1..-1]
-  end
-
-  zs = {}
-  zone_str.split("zone:").each do |s|
-    ss = s.gsub(";",' ').shellsplit
-    zs[ss[0]] = ss[1..-1]
-  end
-
-  [cfgh, zs, as]
-end
-
-def _effectivecfg2effx(all)
-  if all.lstrip.start_with? 'no configuration in effect'
-    return({})
-  end
-  cfg_str, zone_str = all.split('zone:', 2)
-
-  cfgs=cfg_str.split('cfg:')
-  STDERR.puts "Error: effective config size > 1. #{cfg_str}" unless cfgs.size == 2 && cfgs[0].strip == ''
-  cfg_name = cfgs[1].strip
-
-  zs = {}
-  zone_str.split('zone:').each do |s|
-    ss = s.shellsplit
-    zs[ss[0]] = ss[1..-1]
-  end
-  {cfg_name => zs}
-end
-
-def my_zoneshow_parse(str)
-  defcfg, effcfg = str.sub(/^\s*Defined configuration:/, '').split(/^\s*Effective configuration:/)
-  defx2 = _definedcfg2defx(defcfg)
-  effx2 = _effectivecfg2effx(effcfg)
-  [defx2, effx2]
-end
-
-def create_script_from_defx(defx)
-  cfgs, zones, aliass = defx
-  str_s = []
-  aliass.each do |k, v|
-    vs = v.join(';')
-    STDERR.puts 'Error: alias join have " ' if vs.include?('"')
-    str_s << %{alicreate "#{k}","#{vs}"}
-  end
-  zones.each do |k, v|
-    vs = v.join(';')
-    STDERR.puts 'Error: zone join have " ' if vs.include?('"')
-    str_s << %{zonecreate "#{k}","#{vs}"}
-  end
-  cfgs.each do |k, v|
-    vs = v.join(';')
-    STDERR.puts 'Error: cfg join have " ' if vs.include?('"')
-    str_s << %{cfgcreate "#{k}","#{vs}"}
-  end
-  str_s << '# cfgsave'
-  str_s
-end
-
-def create_script_from_effx(effx)
-  str_s = []
-  effx.each do |k2, v2|
-    v2.each do |k, v|
-      vs = v.join(';')
-      STDERR.puts 'Error: zone join have " ' if vs.include?('"')
-      str_s << %{zonecreate "#{k}","#{vs}"}
+class SANZoneStringManualParser
+  def _definedcfg2defx(all)
+    if all.lstrip.start_with? 'no configuration defined'
+      return [{}, {}, {}]
     end
-    vs = v2.keys.join(';')
-    STDERR.puts 'Error: cfg join have " ' if vs.include?('"')
-    str_s << %{cfgcreate "#{k2}","#{vs}"}
+    cfg_str, other = all.split('zone:', 2)
+    zone_str, ali_str = other.split('alias:', 2)
+
+    cfgs=cfg_str.split('cfg:').map do |s|
+      s.gsub(";",' ').shellsplit
+    end
+    cfgs.delete([])
+    cfgh = {}
+    cfgs.each do |cfg|
+      cfgh[cfg[0]] = cfg[1..-1]
+    end
+
+    as = {}
+    ali_str.to_s.split("alias:").map do |s|
+      ss = s.gsub(";",' ').shellsplit
+      as[ss[0]] = ss[1..-1]
+    end
+
+    zs = {}
+    zone_str.split("zone:").each do |s|
+      ss = s.gsub(";",' ').shellsplit
+      zs[ss[0]] = ss[1..-1]
+    end
+
+    [cfgh, zs, as]
   end
-  str_s << '# cfgsave'
-  str_s
+
+  def _effectivecfg2effx(all)
+    if all.lstrip.start_with? 'no configuration in effect'
+      return({})
+    end
+    cfg_str, zone_str = all.split('zone:', 2)
+
+    cfgs=cfg_str.split('cfg:')
+    STDERR.puts "Error: effective config size > 1. #{cfg_str}" unless cfgs.size == 2 && cfgs[0].strip == ''
+    cfg_name = cfgs[1].strip
+
+    zs = {}
+    zone_str.split('zone:').each do |s|
+      ss = s.shellsplit
+      zs[ss[0]] = ss[1..-1]
+    end
+    {cfg_name => zs}
+  end
+
+  def scan_str(str)
+    defcfg, effcfg = str.sub(/^\s*Defined configuration:/, '').split(/^\s*Effective configuration:/)
+    defx2 = _definedcfg2defx(defcfg)
+    effx2 = _effectivecfg2effx(effcfg)
+    [defx2, effx2]
+  end
 end
 
-def diff_defx_and_effx(defx, effx)
-  res = defx_split_and_expand_ports(defx)
-  eff_name = effx.keys[0]
-  effx[eff_name] == res[eff_name]
-end
 
-def defx_split_and_expand_ports(defx)
-  cfgs, zones, aliass = defx
-  res = {}
-  cfgs.each do |name, zs|
-    res[name] = z_ = {}
-    zs.each do |zn|
-      z_[zn] = v_ = []
-      zones.fetch(zn).each do |pOwOn|
-        # FIXME TODO
-        v_.concat(/^\d+,\d+$|^\w{2}(:\w{2}){7}$/ =~ pOwOn ? [pOwOn] : aliass.fetch(pOwOn))
+module Utils
+  def self.find_zoneshow_str_from_log(str)
+    begin_pos = str.rindex(/^\s*Defined configuration:/)
+    return ('') unless begin_pos
+    end_pos = str.index(/^\s*\w+\:\w+\s*\>/, begin_pos) || 0
+    str[begin_pos..end_pos-1]
+  end
+
+  def self.diff_defx_and_effx(defx1, effx1)
+    res = defx_split_and_expand_ports(defx1)
+    eff_name = effx1.keys[0]
+    effx1[eff_name] == res[eff_name]
+  end
+
+  def self.generate_effictive_create_script_from_effx(effx1)
+    str_s = []
+    effx1.each do |k2, v2|
+      v2.sort.each do |k, v|
+        vs = v.join(';')
+        STDERR.puts 'Error: zone join have " ' if vs.include?('"')
+        str_s << %{ zonecreate "#{k}","#{vs}"}
+      end
+
+      str_s << ''
+      vs = v2.keys.join(';')
+      STDERR.puts 'Error: cfg join have " ' if vs.include?('"')
+
+      str_s << %{cfgcreate "#{k2}","xxx"}
+      v2.keys.sort.each { |zn| str_s << %{ cfgadd "#{k2}","#{zn}"} }
+      str_s << %{cfgremove "#{k2}","xxx"}
+    end
+    str_s << ''
+    str_s << ' # cfgsave'
+    str_s
+  end
+
+  def self.defx_split_and_expand_ports(defx1)
+    cfgs, zones, aliass = defx1
+    res = {}
+    cfgs.each do |cfgname, zns|
+      res[cfgname] = z_ = {}
+      zns.each do |zn|
+        z_[zn] = v_ = []
+        zones.fetch(zn).each do |pOwOn|
+          # FIXME TODO
+          v_.concat(/^\d+,\d+$|^\w{2}(:\w{2}){7}$/ =~ pOwOn ? [pOwOn] : aliass.fetch(pOwOn))
+        end
       end
     end
+    res
   end
-  res
+
+  def self.generate_split_cfg_create_script_from_defx(defx1)
+    cfgs, zones, aliass = defx1
+    rvs = {}
+    cfgs.each do |cfgname, zns|
+      rvs[cfgname] = str_s = []
+      usedzns = zns.sort
+      usedalias = usedzns.map { |zn| zones.fetch(zn) }.flatten.uniq.sort
+
+      str_s << "-- #{cfgname}"
+      usedalias.each do |ali|
+        if v=aliass[ali]
+          str_s << %Q{ alicreate "#{ali}","#{v.join ';'}"}
+        else
+          STDERR.puts "??" unless /^\d+,\d+$|^\w{2}(:\w{2}){7}$/ =~ ali # FIXME mulit value in alias
+        end
+      end
+      str_s << ''
+      usedzns.each do |zn|
+        v = zones.fetch(zn)
+        str_s << %Q{ zonecreate "#{zn}","#{v.join ';'}"}
+      end
+
+      str_s << ''
+      str_s << %Q{cfgcreate "#{cfgname}","xxx"}
+      usedzns.each do |zn|
+        str_s << %Q{ cfgadd "#{cfgname}","#{zn}"}
+      end
+      str_s << %Q{cfgremove "#{cfgname}","xxx"}
+      str_s << " # cfgsave"
+      str_s << ''
+    end
+    rvs
+  end
+
+  def self.generate_all_create_script_from_defx(defx1)
+    cfgs, zones, aliass = defx1
+    str_s = []
+    aliass.sort.each do |k, v|
+      vs = v.join(';')
+      STDERR.puts 'Error: alias join have " ' if vs.include?('"')
+      str_s << %{ alicreate "#{k}","#{vs}"}
+    end
+
+    str_s << ''
+    zones.sort.each do |k, v|
+      vs = v.join(';')
+      STDERR.puts 'Error: zone join have " ' if vs.include?('"')
+      str_s << %{ zonecreate "#{k}","#{vs}"}
+    end
+    str_s << ''
+
+    cfgs.sort.each do |k, v|
+      vs = v.join(';')
+      STDERR.puts 'Error: cfg join have " ' if vs.include?('"')
+      str_s << %{cfgcreate "#{k}","xxx"}
+      v.each { |zn| str_s << %{ cfgadd "#{k}","#{zn}"} }
+      str_s << %{cfgremove "#{k}","xxx"}
+    end
+    str_s << ''
+    str_s << ' # cfgsave'
+    str_s
+  end
+
 end
 
+
 def parse_file(fn)
-  zoneshow_s = find_zoneshow_str_from_log(File.binread fn)
+  bd = File.directory?("/tmp") ? "/tmp/ttt2" : "c:"
+  tmpdir = "#{bd}/sanlog-#{File.basename(fn).chomp(File.extname fn)}-#{Time.now.strftime '%H%M%S'}"
+  FileUtils.mkdir_p(tmpdir) unless File.directory?(tmpdir)
+
+  zoneshow_s = Utils.find_zoneshow_str_from_log(File.binread fn)
   if zoneshow_s.empty?
-    puts "empty zoneshow\n\n\n"
+    STDERR.puts "empty zoneshow\n\n\n"
     return
   end
 
-  px = SANZoneShow.new
-  begin
-    defx, effx = px.scan_str(zoneshow_s)
-  ensure
+  defx1, effx1 = SANZoneRaccParser.new.scan_str(zoneshow_s)
+  defx2, effx2 = SANZoneStringManualParser.new.scan_str(zoneshow_s)
+  dif1, dif2 = [defx1 == defx2, effx1 == effx2]
+  File.open("#{tmpdir}/0-parse_summary.log", 'w') do |f|
+    STDERR.puts f.path
+    f.puts "\n### Same Result on RACCParser and StringManualParser ? \n [#{dif1}, #{dif2}]"
+    unless dif1
+      PP.pp(defx1, f)
+      f.puts ''
+      PP.pp(defx2, f)
+    end
+    unless dif2
+      PP.pp(effx1, f)
+      f.puts ''
+      PP.pp(effx2, f)
+    end
   end
-  defx2, effx2 = my_zoneshow_parse(zoneshow_s)
-  puts "\n**** Use RACC Parser result and My Parser result is same?"
-  p [defx==defx2, effx==effx2]
-  unless defx==defx2
-    pp defx,defx2
+
+
+  cfgs, zones, aliass = defx1
+  File.open("#{tmpdir}/1-defined_config_summary.log", 'w') do |f|
+    STDERR.puts f.path
+    f.puts "\n#### Defined config summary: \ncfgs: #{cfgs.size}  zones: #{zones.size}  aliass: #{aliass.size}"
+    PP.pp({'all config'=>cfgs}, f)
+    f.puts ''
+    PP.pp({'all zone'=>zones}, f)
+    f.puts ''
+    PP.pp({'all alias'=>aliass}, f)
   end
-  unless effx==effx2
-    pp effx,effx2
+
+  File.open("#{tmpdir}/2-effective_config.log", 'w') do |f|
+    STDERR.puts f.path
+    f.puts "\n#### Effective config:"
+    PP.pp(effx1, f)
   end
-  puts
 
+  res = Utils.defx_split_and_expand_ports(defx1)
+  File.open("#{tmpdir}/3-defined_config_split_expand_ports.log", 'w') do |f|
+    STDERR.puts f.path
+    f.puts "\n#### Show defined config split and expand ports:"
+    PP.pp(res, f)
+  end
 
-  cfgs, zones, aliass = defx
-  puts "\n**** Defined config have: cfgs: #{cfgs.size}  zones: #{zones.size}  aliass: #{aliass.size}"
-  pp({'cfgS'=>cfgs}, {'zoneS'=>zones}, {'aliasS'=>aliass})
+  res = Utils.diff_defx_and_effx(defx1, effx1)
+  File.open("#{tmpdir}/4-diff_effective_defined_confg.log", 'w') do |f|
+    STDERR.puts f.path
+    f.puts "\n### Same Result Effective config and Defined config ? \n [#{res}]"
+  end
 
-  puts
-  puts "\n**** Effective config:"
-  pp effx
+  res = Utils.generate_effictive_create_script_from_effx(effx1)
+  File.open("#{tmpdir}/5-create_script_from_effective.log", 'w') do |f|
+    STDERR.puts f.path
+    f.puts "\n\n#### from Effective config generated Create Script:"
+    f.puts res
+  end
 
-  puts "\n**** Show defined config split and expand ports:"
-  res = defx_split_and_expand_ports(defx)
-  pp res
+  res = Utils.generate_all_create_script_from_defx(defx1)
+  File.open("#{tmpdir}/6-create_script_all_from_defined_config.log", 'w') do |f|
+    STDERR.puts f.path
+    f.puts "\n\n#### from Defined config generated Create Script:"
+    f.puts res
+  end
 
-  puts "\n****  Is effective config and defined config same ?"
-  p diff_defx_and_effx(defx, effx)
-
-  puts "\n\n**** create_script_from_effx:"
-  puts create_script_from_effx(effx)
-
-  puts "\n\n**** create_script_from_defx:"
-  puts create_script_from_defx(defx)
+  rvs = Utils.generate_split_cfg_create_script_from_defx(defx1)
+  rvs.each do |k,v|
+    File.open("#{tmpdir}/7-create_script_#{k}_from_defined_config.log", 'w') do |f|
+      STDERR.puts f.path
+      f.puts "\n\n#### from Defined config #{k} generated Create Splited Script:"
+      f.puts v
+    end
+  end
 end
 
 if __FILE__ == $0
   while fn = ARGV.shift
     if File.file? fn
-      puts "\n----- #{fn} -----\n"
+      STDERR.puts "\n----- #{fn} -----\n"
       parse_file(fn)
     end
   end

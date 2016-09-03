@@ -14,14 +14,25 @@ z.tab.c: z.y
 z.lex.c: z.l
 	flex -o $@ $<
 
-ruby: zoneshow.tab.rb zoneshow.rex.rb
+
+ruby: zoneshow.tab.rb zoneshow.rex.rb		reformat-san-script.rb	reformat-san-script.rex.rb
+
+
+
+reformat-san-script.rb: reformat-san-script.racc
+	racc $< -o $@
+
+reformat-san-script.rex.rb: reformat-san-script.rex
+	rex $< --stub
 
 
 zoneshow.tab.rb: zoneshow.racc
-	racc -v $<
+	racc _1.4.14_ -v $<
 
 zoneshow.rex.rb: zoneshow.rex
 	rex $< --stub
+
+
 
 diff: all
 	ruby run_diff.rb ${FILE}
