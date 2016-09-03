@@ -493,6 +493,29 @@ module Utils
     res
   end
 
+  def self.remove_not_effactive_cfg(defx1, keeped_cfgname)
+    cfgs, zones, aliass = defx1
+    res = []
+    usedzns = usedalias = nil
+    cfgs.each do |cfgname, zns|
+      if cfgname == keeped_cfgname
+        usedzns = zns.sort
+        usedalias = usedzns.map { |zn| zones.fetch(zn) }.flatten.uniq.sort
+      else
+        res << %Q{cfgdelete "#{cfgname}"}
+      end
+    end
+    res << ''
+    zones.sort.each do |znn, znv|
+      res << %{zonedelete "#{znn}"} unless usedzns.include?(znn)
+    end
+    res << ''
+    aliass.sort.each do |alin, aliv|
+      res << %{alidelete "#{alin}"} unless usedalias.include?(alin)
+    end
+    res
+  end
+
   def self.generate_split_cfg_create_script_from_defx(defx1)
     cfgs, zones, aliass = defx1
     rvs = {}
@@ -640,6 +663,14 @@ def parse_file(fn)
       f.puts "\n\n#### from Defined config #{k} generated Create Splited Script:"
       f.puts v
     end
+  end
+
+  eff_cfgname = effx1.keys[0]
+  res = Utils.remove_not_effactive_cfg(defx1, eff_cfgname)
+  File.open("#{tmpdir}/8-remove_not_effactive_cfg.log", 'w') do |f|
+    STDERR.puts f.path
+    f.puts "\n\n#### delete not Effectived config, Keeped {#{eff_cfgname}} :"
+    f.puts res
   end
 end
 
