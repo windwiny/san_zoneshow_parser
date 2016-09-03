@@ -1,0 +1,31 @@
+   Defined configuration: 
+   cfg:   AMS_1A_AIX
+                  AMS_1A_AIX1_HBA2; AMS_1A_AIX2_HBA2 ; AMS_1A_AIX3_HBA2
+   zone:  AMS_1A_AIX1_HBA2
+                  AIX1_HBA2; AMS_1A; 4,5
+   zone:  AMS_1A_AIX2_HBA2
+                  AIX2_HBA2; AMS_1A; AMS_2A; 9,1;9,2
+   zone:  AMS_1A_AIX3_HBA2
+                  AIX3_HBA2; AMS_1A ; 11,22
+   alias: AIX1_HBA2
+                  1,0
+   alias: AIX2_HBA2
+                  1,1
+   alias: AIX3_HBA2
+                  1,5
+   alias: AMS_1A  1,8
+   alias: AMS_2A  1,9
+   alias: AMS_3A  ab:cd:ef:gh:a0:b1:c2:d3
+
+  Effective configuration:
+   cfg:   AMS_1A_AIX
+   zone:  AMS_1A_AIX1_HBA2
+                  1,0
+                  1,8 4,5
+   zone:  AMS_1A_AIX2_HBA2
+                  1,1
+                  1,8 1,9 9,1 9,2 
+		  
+		  
+zone: AMS_1A_AIX3_HBA2 1,5 1,8
+ 11,22
