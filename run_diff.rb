@@ -10,7 +10,7 @@ Dir.chdir File.dirname(__FILE__)
 
 
 def get_bison_pg_ret str
-  ret = Open3.popen2("./c_zs") {|i,o,t|
+  ret = Open3.popen2e("./c_zs") {|i,o,t|
     i.print str
     i.close
     o.read
