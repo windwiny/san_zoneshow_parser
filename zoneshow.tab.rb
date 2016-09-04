@@ -10,7 +10,7 @@ require 'racc/parser.rb'
 require "pp"
 require "shellwords"
 require 'fileutils'
-require File.join(File.dirname(__FILE__), "zoneshow.rex")
+require_relative "zoneshow.rex"
 
 class SANZoneRaccParser < Racc::Parser
 
