@@ -1446,7 +1446,7 @@ yyreduce:
 
   case 4:
 #line 101 "z.y"
-    { print_s_h("cfgS", (yyvsp[(2) - (4)].ph)); print_s_h("zoneS", (yyvsp[(3) - (4)].ph)); print_s_h("aliasS", (yyvsp[(4) - (4)].ph)); (yyval.intv) = 0 ;}
+    { print_s_h("all config", (yyvsp[(2) - (4)].ph)); print_s_h("all zone", (yyvsp[(3) - (4)].ph)); print_s_h("all alias", (yyvsp[(4) - (4)].ph)); (yyval.intv) = 0 ;}
     break;
 
   case 5:

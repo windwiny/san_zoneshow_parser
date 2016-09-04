@@ -16,14 +16,18 @@ def get_bison_pg_ret str
     o.read
   }
 
-  puts "cfgS, zoneS, aliasS, Effecctive:", ret
-  a,b,c,d = 1,2,3,4
-  eval('a,b,c,d = [' + ret.chomp(',') + ']')
+  puts "# all config, all zone, all alias, Effecctive:", ret.rstrip.chomp(',')
+  a,b,c,d = {"all config"=>{}}, {"all zone"=>{}}, {"all alias"=>{}}, {}
+  if ret =~ /not defined and effect/
+    puts
+  else
+    eval('a,b,c,d = [' + ret.rstrip.chomp(',') + ']')
+  end
   [[a,b,c], d]
 end
 
 def get_racc_pg_ret str
-  px = SANZoneShow.new
+  px = SANZoneRaccParser.new
   begin
     defx, effx = px.scan_str(str)
   ensure
@@ -33,7 +37,7 @@ end
 
 
 def find_zs_str cfgfn
-  zoneshow_s = find_zoneshow_str_from_log(File.binread cfgfn)
+  zoneshow_s = Utils.find_zoneshow_str_from_log(File.binread cfgfn)
   if zoneshow_s.empty?
     puts "empty zoneshow\n\n\n"
     return
@@ -45,17 +49,30 @@ str = find_zs_str(ARGV[0] || 'cfg4.txt')
 
 defx0, effx0 = get_bison_pg_ret(str)
 defx1, effx1 = get_racc_pg_ret(str)
-defx2, effx2 = my_zoneshow_parse(str)
+defx2, effx2 = SANZoneStringManualParser.new.scan_str(str)
 
 
 cfgs, zones, aliass = defx1
-defx1 = [{'cfgS'=>cfgs}, {'zoneS'=>zones}, {'aliasS'=>aliass}]
+defx1 = [{'all config'=>cfgs}, {'all zone'=>zones}, {'all alias'=>aliass}]
 
 cfgs, zones, aliass = defx2
-defx2 = [{'cfgS'=>cfgs}, {'zoneS'=>zones}, {'aliasS'=>aliass}]
+defx2 = [{'all config'=>cfgs}, {'all zone'=>zones}, {'all alias'=>aliass}]
 
-puts "diff c/bison and ruby/racc defined configuration: #{defx0==defx1}"
-puts "diff c/bison and ruby/racc effective configuration: #{effx0==effx1}"
+
+def puts_diff(msg, x, y)
+  dif = x==y
+  puts " # #{msg}: #{dif}"
+  unless dif
+    p '-------- left -----'
+    puts x
+    p '-------- right -----'
+    puts y
+    puts
+  end
+end
 puts
-puts "diff ruby/racc and ruby/my_parser defined configuration: #{defx1==defx2}"
-puts "diff ruby/racc and ruby/my_parser effective configuration: #{effx1==effx2}"
+puts_diff "diff c/bison and ruby/racc defined configuration",           defx0, defx1
+puts_diff "diff c/bison and ruby/racc effective configuration",         effx0, effx1
+puts_diff "diff ruby/racc and ruby/my_parser defined configuration",    defx1, defx2
+puts_diff "diff ruby/racc and ruby/my_parser effective configuration",  effx1, effx2
+

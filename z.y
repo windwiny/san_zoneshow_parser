@@ -98,7 +98,7 @@ zoneshow    : defx  effx            { $$=0 }
             | DEFINED NODEFINED EFFECTIVE NOEFFECTIVE { if(!SHOWTOKEN) printf(" !! not defined and effect\n"); $$ = 99; }
             ;
 
-defx        : DEFINED cfgs zones aliass { print_s_h("cfgS", $<ph>2); print_s_h("zoneS", $<ph>3); print_s_h("aliasS", $<ph>4); $$ = 0 }
+defx        : DEFINED cfgs zones aliass { print_s_h("all config", $<ph>2); print_s_h("all zone", $<ph>3); print_s_h("all alias", $<ph>4); $$ = 0 }
             ;
 
 effx        : EFFECTIVE CFG NAME ezones { print_s_h($<pc>3, $<ph>4); $$ = 0 }
