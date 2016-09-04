@@ -427,5 +427,5 @@ fns = ARGV.map do |fn|
 end
 p fns
 
-exec "mvim -d #{fns.join ' '}"
+exec "mvim -d #{fns.join ' '}" unless fns.empty? rescue nil
 p 'end.'
