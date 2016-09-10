@@ -446,7 +446,7 @@ module Utils
   def self.find_zoneshow_str_from_log(str)
     begin_pos = str.rindex(/^\s*Defined configuration:/)
     return ('') unless begin_pos
-    end_pos = str.index(/^\s*\w+\:\w+\s*\>/, begin_pos) || 0
+    end_pos = str.index(/^\s*\w+\:\w+\s*\>|^\s*{/, begin_pos) || 0
     str[begin_pos..end_pos-1]
   end
 
