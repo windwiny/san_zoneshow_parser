@@ -1,0 +1,24 @@
+
+
+/[ \t\n]+/				{ if SHOWTOKEN {fmt.Printf(" ")}; /* do nothing?  */ }
+/Defined configuration:/		{ if SHOWTOKEN {fmt.Printf("DEFINED \n")}; return DEFINED; }
+/Effective configuration:/		{ if SHOWTOKEN {fmt.Printf("EFFECTIVE \n")}; return EFFECTIVE; }
+/no configuration defined/		{ if SHOWTOKEN {fmt.Printf("NODEFINED \n")}; return NODEFINED; }
+/no configuration in effect/		{ if SHOWTOKEN {fmt.Printf("NOEFFECTIVE \n")}; return NOEFFECTIVE; }
+/cfg:/					{ if SHOWTOKEN {fmt.Printf("CFG <%s>\n", zoneshlex.Text())}; lval.vString=zoneshlex.Text(); return CFG; }
+/zone:/					{ if SHOWTOKEN {fmt.Printf("ZONE  <%s>\n", zoneshlex.Text())}; lval.vString=zoneshlex.Text(); return ZONE; }
+/alias:/				{ if SHOWTOKEN {fmt.Printf("ALIAS  <%s>\n", zoneshlex.Text())}; lval.vString=zoneshlex.Text(); return ALIAS; }
+
+
+/[0-9]+,[0-9]+/				{ if SHOWTOKEN {fmt.Printf("PORT  <%s>\n", zoneshlex.Text())}; lval.vString=zoneshlex.Text(); return PORT; }
+/[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]/
+										{ if SHOWTOKEN {fmt.Printf("WWPN  <%s>\n", zoneshlex.Text())}; lval.vString=zoneshlex.Text(); return WWPN; }
+
+/[a-zA-Z_0-9]+/				{ if SHOWTOKEN {fmt.Printf("NAME  <%s>\n", zoneshlex.Text())}; lval.vString=zoneshlex.Text(); return NAME; }
+/./					{ if SHOWTOKEN {fmt.Printf(".<%v>\n",int([]rune(zoneshlex.Text())[0]))}; lval.vRune=[]rune(zoneshlex.Text())[0]; return int([]rune(zoneshlex.Text())[0]); }
+
+//
+
+
+package main
+import ("fmt")
