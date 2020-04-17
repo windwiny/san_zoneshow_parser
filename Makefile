@@ -2,7 +2,7 @@
 
 .PHONY: all ruby diff
 
-all: c_zs ruby
+all: c_zs ruby go
 
 
 c_zs: z.tab.c z.lex.c
@@ -32,7 +32,16 @@ zoneshow.tab.rb: zoneshow.racc
 zoneshow.rex.rb: zoneshow.rex
 	rex $< --stub
 
+go: main.go go.y.go go.nn.go
+	go build -o $@  main.go go.y.go go.nn.go
+
+go.y.go: go.y
+	goyacc -p zonesh -o $@ $<
+
+go.nn.go: go.nex
+	nex -p zonesh -o $@ $<
 
 
 diff: all
 	ruby run_diff.rb ${FILE}
+
