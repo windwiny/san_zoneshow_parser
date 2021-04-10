@@ -27,7 +27,7 @@ reformat-san-script.rex.rb: reformat-san-script.rex
 
 
 zoneshow.tab.rb: zoneshow.racc
-	racc _1.4.14_ -v $<
+	racc -v $<
 
 zoneshow.rex.rb: zoneshow.rex
 	rex $< --stub
