@@ -15,6 +15,7 @@ func init() {
 }
 
 func main() {
+	flag.Parse()
 	lex := NewLexer(os.Stdin)
 	zoneshParse(lex)
 	// fmt.Printf("ret=%d\n", ret)

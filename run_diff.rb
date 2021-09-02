@@ -45,7 +45,7 @@ def find_zs_str cfgfn
 end
 
 def get_goyacc_pg_ret str
-  ret = Open3.popen2e("./go") {|i,o,t|
+  ret = Open3.popen2e("./go_zs") {|i,o,t|
     i.print str
     i.close
     o.read
