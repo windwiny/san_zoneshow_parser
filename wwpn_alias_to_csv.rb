@@ -62,7 +62,7 @@ $stderr.puts '----------- NPIV parse for portshow/supportshow log ----'
 NPIV_WWPN2ALIAS = {}
 ARGV[1..-1].each do |fn|
   $stderr.puts ['------ fn', fn].join("\t")
-  da = `cat "#{fn}" | awk '/portId:/,/Distance:/'`
+  da = `cat "#{fn}" | awk '/^portId:/,/^Distance:/'`
   id_port = ''
 
   lls = da.lines
@@ -71,20 +71,21 @@ ARGV[1..-1].each do |fn|
     if sps[0] == 'portId:'
       v1 = sps[1].scan(/../).to_a
       id_port = "#{v1[0].to_i(16)},#{v1[1].to_i(16)}"
-      $stderr.puts  # split other port
       next
     end
-    if l =~ /port|Distance/
-      next
+    
+    if sps.size != 1
+      next  # other line
+    else
+      wwn = sps[0]
     end
 
-    wwn = l.strip
     s1 = wwpn2alias[wwn].to_s
     s1 = '[]' if s1==''
     begin
-      $stderr.puts "#{id_port}\t#{wwn} #{s1}"
+      $stderr.puts "add #{id_port}\t#{wwn} #{s1}"
       NPIV_WWPN2ALIAS[id_port] ||= []
-      NPIV_WWPN2ALIAS[id_port] << "nport: #{wwn} #{s1}"
+      NPIV_WWPN2ALIAS[id_port] << "#{wwn} #{s1}" # nport
     end
   end
 end
@@ -93,8 +94,13 @@ end
 $stderr.puts '------ id,port     Speed     Status    WWPN      Alias --------'
 ARGV[1..-1].each do |fn|
   $stderr.puts ['------ fn', fn].join("\t")
-  da = `awk '/=======================================/,/^\\w/' "#{fn}"`
-  sfn = File.basename(fn).chomp(File.extname(fn))
+  # da = `awk '/=======================================/,/^\\w/' "#{fn}"`
+  # da = `awk '/^switchshow.*?:\r?$/,/^tempshow.*?:\r?$|\>/' "#{fn}"`
+  
+  #  switchshow  or  supportshow log
+  da = `awk '/^switchName:/{ENTT=1} {if(ENTT>0 && $0~/:\r?$|>/)ENTT=0; if(ENTT>0) { print $0} }'    "#{fn}"`
+  # sfn = File.basename(fn).chomp(File.extname(fn))
+  sfn = da[0..100].split[1]
 
   lls = da.lines[1..-2]
   next unless lls
@@ -107,19 +113,24 @@ ARGV[1..-1].each do |fn|
     po = ls[2][2..3].to_i 16
     idport = "#{id},#{po}"
     speed = ls[4]
-    stat = ls[5]=~/Online|Offline/ ? '' : ls[5]
+    stat = ls[5]=='Online' ? '' : ls[5]
     wwpn = ls[8]
+    if /POD license/i =~ wwpn
+      wwpn = "#{ls[7]} #{wwpn}"
+    end
     s1 = wwpn2alias[wwpn].to_s
-    s1 = 'wwpnAlias: '+s1 if s1!=''
+    s1 = 'wwpn: '+s1 if s1!=''
     s2 = port2alias[idport].to_s
-    s2 = 'portAlias: '+s2 if s2!=''
-    s3 = ''
+    s2 = 'port: '+s2 if s2!=''
+    s3 = []
     if NPIV_WWPN2ALIAS[idport] && NPIV_WWPN2ALIAS[idport].size > 1
-      s3 += "\n" + NPIV_WWPN2ALIAS[idport].join("\n")
+      s3 << NPIV_WWPN2ALIAS[idport]
     end
 
-    ss = [ sfn, idport, speed, stat,  wwpn, ([s1,s2].join("  ") + s3).strip ]
-    puts ss.to_csv
+    s1s2 = [s1,s2].join('  ').rstrip
+    s1s2 += "\n" unless s1s2 == ''
+    ss = [ sfn, idport, speed, stat,  wwpn, (s1s2 + s3.join("\n")).rstrip ]
+    puts ss.to_csv(col_sep: "\t").gsub('""','').rstrip
   end
   puts
 end
