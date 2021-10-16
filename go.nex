@@ -14,7 +14,7 @@
 /[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]:[a-zA-Z_0-9][a-zA-Z_0-9]/
 										{ if SHOWTOKEN {fmt.Printf("WWPN  <%s>\n", zoneshlex.Text())}; lval.vString=zoneshlex.Text(); return WWPN; }
 
-/[a-zA-Z_0-9]+/				{ if SHOWTOKEN {fmt.Printf("NAME  <%s>\n", zoneshlex.Text())}; lval.vString=zoneshlex.Text(); return NAME; }
+/[a-zA-Z_0-9][a-zA-Z_0-9-]*/		{ if SHOWTOKEN {fmt.Printf("NAME  <%s>\n", zoneshlex.Text())}; lval.vString=zoneshlex.Text(); return NAME; }
 /./					{ if SHOWTOKEN {fmt.Printf(".<%v>\n",int([]rune(zoneshlex.Text())[0]))}; lval.vRune=[]rune(zoneshlex.Text())[0]; return int([]rune(zoneshlex.Text())[0]); }
 
 //

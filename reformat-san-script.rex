@@ -11,7 +11,7 @@ rule
   \w{2}(:\w{2}){7}  { [:WWPN, text] }
 
   \d+               { [:NUMBER, text] }
-  \w+               { [:NAME, text] }
+  \w(\w|-)*         { [:NAME, text] }
 
   .|\n              { [text, text] }
 

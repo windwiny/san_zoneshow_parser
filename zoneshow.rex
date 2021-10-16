@@ -26,7 +26,7 @@ rule
   \d+,\d+           { [:PORT, text] }
   \w{2}(:\w{2}){7}  { [:WWPN, text] }
 
-  \w+               { [:NAME, text] }
+  \w(\w|-)*         { [:NAME, text] }
   .|\n              { [text, text] }
 
 inner

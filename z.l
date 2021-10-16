@@ -18,6 +18,7 @@ noeffective   no\ configuration\ in\ effect
 
 dig           [0-9]
 wh            [a-zA-Z_0-9]
+wh2           [a-zA-Z_0-9-]
 
 %%
 
@@ -34,7 +35,7 @@ wh            [a-zA-Z_0-9]
 {dig}+,{dig}+           { yylval.pc=strdup(yytext); if(SHOWTOKEN) printf("[:%s, \"%s\"]\n", "PORT",        yytext); return PORT; }
 {wh}{2}(:{wh}{2}){7}    { yylval.pc=strdup(yytext); if(SHOWTOKEN) printf("[:%s, \"%s\"]\n", "WWPN",        yytext); return WWPN; }
 
-{wh}+                   { yylval.pc=strdup(yytext); if(SHOWTOKEN) printf("[:%s, \"%s\"]\n", "NAME",        yytext); return NAME; }
+{wh}{wh2}*              { yylval.pc=strdup(yytext); if(SHOWTOKEN) printf("[:%s, \"%s\"]\n", "NAME",        yytext); return NAME; }
 .|\n                    { yylval.c=yytext[0];       if(SHOWTOKEN) printf("[\"%c\", \"%s\"]\n", yylval.c,   yytext); return yylval.c; }
 
 %%
