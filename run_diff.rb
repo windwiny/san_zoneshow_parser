@@ -9,29 +9,32 @@ Dir.chdir File.dirname(__FILE__)
 
 
 
-def get_bison_pg_ret str
-  ret = Open3.popen2e("./c_zs") {|i,o,t|
-    i.print str
-    i.close
-    o.read
-  }
+def get_external_ret cmd, str, cmd_type
+  t0 = Time.now
+  ret, s = Open3.capture2(cmd, :stdin_data=>str, :binmode=>true)
+  ret = ret.rstrip.chomp(',')
+  puts "**** #{cmd_type} used #{Time.now()-t0} seconds,  exit #{s.exitstatus},  ret #{ret.size} bytes"
 
-  puts "# all config, all zone, all alias, Effecctive:", ret.rstrip.chomp(',')
+  ## puts "# all config, all zone, all alias, Effecctive:", ret.size
   a,b,c,d = {"all config"=>{}}, {"all zone"=>{}}, {"all alias"=>{}}, {}
   if ret =~ /not defined and effect/
     puts
   else
-    eval('a,b,c,d = [' + ret.rstrip.chomp(',') + ']')
+    eval('a,b,c,d = [' + ret + ']')
   end
   [[a,b,c], d]
 end
 
 def get_racc_pg_ret str
   px = SANZoneRaccParser.new
+  t0 = Time.now
   begin
     defx, effx = px.scan_str(str)
   ensure
   end
+  puts "**** ruby rex/racc used #{Time.now()-t0} seconds."
+  cfgs, zones, aliass = defx
+  defx = [{'all config'=>cfgs}, {'all zone'=>zones}, {'all alias'=>aliass}]
   [defx, effx]
 end
 
@@ -44,37 +47,24 @@ def find_zs_str cfgfn
   zoneshow_s
 end
 
-def get_goyacc_pg_ret str
-  ret = Open3.popen2e("./go_zs") {|i,o,t|
-    i.print str
-    i.close
-    o.read
-  }
-
-  puts "# all config, all zone, all alias, Effecctive:", ret.rstrip.chomp(',')
-  a,b,c,d = {"all config"=>{}}, {"all zone"=>{}}, {"all alias"=>{}}, {}
-  if ret =~ /not defined and effect/
-    puts
-  else
-    eval('a,b,c,d = [' + ret.rstrip.chomp(',') + ']')
-  end
-  [[a,b,c], d]
-end
-
 
 str = find_zs_str(ARGV[0] || 'cfg4.txt')
+STDERR.puts " FILE=#{ARGV[0] || 'cfg4.txt'}, size: #{str.size}"
 
-defx0, effx0 = get_bison_pg_ret(str)
+defx0, effx0 = get_external_ret('./c_zs', str, 'c flex/bison')
+
 defx1, effx1 = get_racc_pg_ret(str)
-defx2, effx2 = SANZoneStringManualParser.new.scan_str(str)
-defx3, effx3 = get_goyacc_pg_ret(str)
 
-
-cfgs, zones, aliass = defx1
-defx1 = [{'all config'=>cfgs}, {'all zone'=>zones}, {'all alias'=>aliass}]
-
-cfgs, zones, aliass = defx2
+t0 = Time.now
+defx, effx2 = SANZoneStringManualParser.new.scan_str(str)
+puts "**** ruby manual #{Time.now()-t0} seconds."
+cfgs, zones, aliass = defx
 defx2 = [{'all config'=>cfgs}, {'all zone'=>zones}, {'all alias'=>aliass}]
+
+defx3, effx3 = get_external_ret('./go_zs', str, 'go nex/goyacc')
+
+
+
 
 
 def puts_diff(msg, x, y)
