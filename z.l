@@ -5,7 +5,7 @@ int SHOWTOKEN=0;
 #include "z.tab.h"
 %}
 
-BLANKS        [\ \t\n]+
+BLANKS        [\ \t\r\n]+
 
 defined       Defined\ configuration:
 effective     Effective\ configuration:

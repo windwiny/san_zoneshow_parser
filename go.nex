@@ -1,6 +1,6 @@
 
 
-/[ \t\n]+/				{ if SHOWTOKEN {fmt.Printf(" ")}; /* do nothing?  */ }
+/[ \t\r\n]+/				{ if SHOWTOKEN {fmt.Printf(" ")}; /* do nothing?  */ }
 /Defined configuration:/		{ if SHOWTOKEN {fmt.Printf("DEFINED \n")}; return DEFINED; }
 /Effective configuration:/		{ if SHOWTOKEN {fmt.Printf("EFFECTIVE \n")}; return EFFECTIVE; }
 /no configuration defined/		{ if SHOWTOKEN {fmt.Printf("NODEFINED \n")}; return NODEFINED; }
