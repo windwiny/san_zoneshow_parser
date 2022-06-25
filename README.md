@@ -42,6 +42,16 @@
     require 'sanuitl'
     puts SANUtil.singleton_methods
 
+
+    # from logfile generate create scripts
+    ruby zoneshow.tab.rb cfg4.txt --keeporder
+    # or
+    $keeporder = true
+    SANUtil.parse_file(fn)
+
+    # from logfile generate Hash
+    SANUtil.sanlog2kvs(fn)
+
 ## other
 
     # copy or link antlr-4.10.1-complete.jar to project directory.
