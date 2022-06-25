@@ -98,13 +98,14 @@ ARGV[1..-1].each do |fn|
   # da = `awk '/^switchshow.*?:\r?$/,/^tempshow.*?:\r?$|\>/' "#{fn}"`
   
   #  switchshow  or  supportshow log
-  da = `awk '/^switchName:/{ENTT=1} {if(ENTT>0 && $0~/:\r?$|>/)ENTT=0; if(ENTT>0) { print $0} }'    "#{fn}"`
+  da = `awk '/^switchName:/{ENTT=1} {if(ENTT>0 && ($0~/^YW\-SAN\-SW/ || $0~/:\r?$/))ENTT=0; if(ENTT>0) { print $0} }'    "#{fn}"`
   # sfn = File.basename(fn).chomp(File.extname(fn))
   sfn = da[0..100].split[1]
 
   lls = da.lines[1..-2]
   next unless lls
 
+  wwpn_kvs = {}
   lls.each do |l|
     ls = l.strip.split(' ', 9)
     next unless /^\s*\d+\s+\d+\s+\w{6}\s+/ =~ l
@@ -130,6 +131,12 @@ ARGV[1..-1].each do |fn|
     s1s2 = [s1,s2].join('  ').rstrip
     s1s2 += "\n" unless s1s2 == ''
     ss = [ sfn, idport, speed, stat,  wwpn, (s1s2 + s3.join("\n")).rstrip ]
+
+    #  not direct print, add to hash, avoid replaction
+    wwpn_kvs[idport] = ss
+  end
+
+  wwpn_kvs.each do |port, ss|
     puts ss.to_csv(col_sep: "\t").gsub('""','').rstrip
   end
   puts

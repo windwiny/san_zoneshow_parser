@@ -86,7 +86,7 @@ end
 require "pp"
 require "shellwords"
 require 'fileutils'
-require_relative "zoneshow.rex"
+require File.join(File.absolute_path(__dir__), "zoneshow.rex.rb")
 
 ---- footer
 
@@ -149,7 +149,7 @@ class SANZoneStringManualParser
 end
 
 
-module Utils
+module SANUtil
   def self.find_zoneshow_str_from_log(str)
     begin_pos = str.rindex(/^\s*Defined configuration:/)
     return ('') unless begin_pos
@@ -165,8 +165,10 @@ module Utils
 
   def self.generate_effictive_create_script_from_effx(effx1)
     str_s = []
-    effx1.sort.each do |k2, v2|
-      v2.sort.each do |k, v|
+    effx1 = $keeporder ? effx1.to_a : effx1.to_a.sort
+    effx1.each do |k2, v2|
+      _v2 = $keeporder ? v2.to_a : v2.to_a.sort
+      _v2.each do |k, v|
         vs = v.join(';')
         STDERR.puts 'Error: zone join have " ' if vs.include?('"')
         str_s << %{ zonecreate "#{k}","#{vs}"}
@@ -177,7 +179,8 @@ module Utils
       STDERR.puts 'Error: cfg join have " ' if vs.include?('"')
 
       str_s << %{cfgcreate "#{k2}","xxx"}
-      v2.keys.sort.each { |zn| str_s << %{ cfgadd "#{k2}","#{zn}"} }
+      _ks = $keeporder ? v2.keys.to_a : v2.keys.to_a.sort
+      _ks.each { |zn| str_s << %{ cfgadd "#{k2}","#{zn}"} }
       str_s << %{cfgremove "#{k2}","xxx"}
     end
     str_s << ''
@@ -187,12 +190,14 @@ module Utils
 
   def self.defx_split_and_expand_ports(defx1)
     cfgs, zones, aliass = defx1
+
     res = {}
-    cfgs.sort.each do |cfgname, zns|
+    cfgs = $keeporder ? cfgs.to_a : cfgs.to_a.sort
+    cfgs.each do |cfgname, zns|
       res[cfgname] = z_ = {}
       zns.each do |zn|
         z_[zn] = v_ = []
-        zones.sort.to_h.fetch(zn).each do |pOwOn|
+        zones.fetch(zn).each do |pOwOn|
           # FIXME TODO
           v_.concat(/^\d+,\d+$|^\w{2}(:\w{2}){7}$/ =~ pOwOn ? [pOwOn] : aliass.fetch(pOwOn))
         end
@@ -203,34 +208,49 @@ module Utils
 
   def self.remove_not_effactive_cfg(defx1, keeped_cfgname)
     cfgs, zones, aliass = defx1
+
+    cfgs_a, zones_a, aliass_a = if $keeporder
+      [cfgs.to_a, zones.to_a, aliass.to_a]
+    else
+      [cfgs.to_a.sort, zones.to_a.sort, aliass.to_a.sort]
+    end
+
     res = []
     usedzns = usedalias = nil
-    cfgs.sort.each do |cfgname, zns|
+    cfgs_a.each do |cfgname, zns|
       if cfgname == keeped_cfgname
-        usedzns = zns.sort
-        usedalias = usedzns.map { |zn| zones.fetch(zn) }.flatten.uniq.sort
+        usedzns = zns.to_a
+        usedzns = usedzns.sort unless $keeporder
+        usedalias = usedzns.map { |zn| zones.fetch(zn) }.flatten.uniq
+        usedalias = usedalias.sort unless $keeporder
       else
         res << %Q{cfgdelete "#{cfgname}"}
       end
     end
+
     res << ''
-    zones.sort.each do |znn, znv|
+    zones_a.each do |znn, znv|
       res << %{zonedelete "#{znn}"} unless usedzns.include?(znn)
     end
+
     res << ''
-    aliass.sort.each do |alin, aliv|
+    aliass_a.each do |alin, aliv|
       res << %{alidelete "#{alin}"} unless usedalias.include?(alin)
     end
+
     res
   end
 
   def self.generate_split_cfg_create_script_from_defx(defx1)
     cfgs, zones, aliass = defx1
     rvs = {}
-    cfgs.sort.each do |cfgname, zns|
+    cfgs_a = $keeporder ? cfgs.to_a : cfgs.to_a.sort
+    cfgs_a.each do |cfgname, zns|
       rvs[cfgname] = str_s = []
-      usedzns = zns.sort
-      usedalias = usedzns.map { |zn| zones.fetch(zn) }.flatten.uniq.sort
+      usedzns = zns.to_a
+      usedzns = usedzns.sort unless $keeporder
+      usedalias = usedzns.map { |zn| zones.fetch(zn) }.flatten.uniq
+      usedalias = usedalias.sort unless $keeporder
 
       str_s << "-- #{cfgname}"
       usedalias.each do |ali|
@@ -255,139 +275,165 @@ module Utils
       str_s << " # cfgsave"
       str_s << ''
     end
+
     rvs
   end
 
   def self.generate_all_create_script_from_defx(defx1)
     cfgs, zones, aliass = defx1
+
+    cfgs_a, zones_a, aliass_a = if $keeporder
+      [cfgs.to_a, zones.to_a, aliass.to_a]
+    else
+      [cfgs.to_a.sort, zones.to_a.sort, aliass.to_a.sort]
+    end
+
     str_s = []
-    aliass.sort.each do |k, v|
+    aliass_a.each do |k, v|
       vs = v.join(';')
       STDERR.puts 'Error: alias join have " ' if vs.include?('"')
       str_s << %{ alicreate "#{k}","#{vs}"}
     end
 
     str_s << ''
-    zones.sort.each do |k, v|
+    zones_a.each do |k, v|
       vs = v.join(';')
       STDERR.puts 'Error: zone join have " ' if vs.include?('"')
       str_s << %{ zonecreate "#{k}","#{vs}"}
     end
-    str_s << ''
 
-    cfgs.sort.each do |k, v|
+    str_s << ''
+    cfgs_a.each do |k, v|
       vs = v.join(';')
       STDERR.puts 'Error: cfg join have " ' if vs.include?('"')
       str_s << %{cfgcreate "#{k}","xxx"}
-      v.sort.each { |zn| str_s << %{ cfgadd "#{k}","#{zn}"} }
+      _vv = $keeporder ? v.to_a : v.to_a.sort
+      _vv.each { |zn| str_s << %{ cfgadd "#{k}","#{zn}"} }
       str_s << %{cfgremove "#{k}","xxx"}
     end
     str_s << ''
     str_s << ' # cfgsave'
+
     str_s
   end
 
-end
 
+  def self.parse_file(fn)
+    bd = File.directory?("/tmp") ? "/tmp/ttt2" : "c:"
+    tmpdir = "#{bd}/sanlog-#{File.basename(fn).chomp(File.extname fn)}-#{Time.now.strftime '%H%M%S'}"
+    FileUtils.mkdir_p(tmpdir) unless File.directory?(tmpdir)
 
-def parse_file(fn)
-  bd = File.directory?("/tmp") ? "/tmp/ttt2" : "c:"
-  tmpdir = "#{bd}/sanlog-#{File.basename(fn).chomp(File.extname fn)}-#{Time.now.strftime '%H%M%S'}"
-  FileUtils.mkdir_p(tmpdir) unless File.directory?(tmpdir)
-
-  zoneshow_s = Utils.find_zoneshow_str_from_log(File.binread fn)
-  if zoneshow_s.empty?
-    STDERR.puts "empty zoneshow\n\n\n"
-    return
-  end
-
-  defx1, effx1 = SANZoneRaccParser.new.scan_str(zoneshow_s)
-  defx2, effx2 = SANZoneStringManualParser.new.scan_str(zoneshow_s)
-  dif1, dif2 = [defx1 == defx2, effx1 == effx2]
-  File.open("#{tmpdir}/0-parse_summary.log", 'w') do |f|
-    STDERR.puts f.path
-    f.puts "\n### Same Result on RACCParser and StringManualParser ? \n [#{dif1}, #{dif2}]"
-    unless dif1
-      PP.pp(defx1, f)
-      f.puts ''
-      PP.pp(defx2, f)
+    zoneshow_s = find_zoneshow_str_from_log(File.binread fn)
+    if zoneshow_s.empty?
+      STDERR.puts "empty zoneshow\n\n\n"
+      return
     end
-    unless dif2
-      PP.pp(effx1, f)
-      f.puts ''
-      PP.pp(effx2, f)
-    end
-  end
 
+    defx1, effx1 = SANZoneRaccParser.new.scan_str(zoneshow_s)
+    defx2, effx2 = SANZoneStringManualParser.new.scan_str(zoneshow_s)
+    dif1, dif2 = [defx1 == defx2, effx1 == effx2]
 
-  cfgs, zones, aliass = defx1
-  File.open("#{tmpdir}/1-defined_config_summary.log", 'w') do |f|
-    STDERR.puts f.path
-    f.puts "\n#### Defined config summary: \ncfgs: #{cfgs.size}  zones: #{zones.size}  aliass: #{aliass.size}"
-    PP.pp({'all config'=>cfgs}, f, 220)
-    f.puts ''
-    PP.pp({'all zone'=>zones}, f, 220)
-    f.puts ''
-    PP.pp({'all alias'=>aliass}, f, 220)
-  end
-
-  File.open("#{tmpdir}/2-effective_config.log", 'w') do |f|
-    STDERR.puts f.path
-    f.puts "\n#### Effective config:"
-    PP.pp(effx1, f, 220)
-  end
-
-  res = Utils.defx_split_and_expand_ports(defx1)
-  File.open("#{tmpdir}/3-defined_config_split_expand_ports.log", 'w') do |f|
-    STDERR.puts f.path
-    f.puts "\n#### Show defined config split and expand ports:"
-    PP.pp(res, f, 220)
-  end
-
-  res = Utils.diff_defx_and_effx(defx1, effx1)
-  File.open("#{tmpdir}/4-diff_effective_defined_confg.log", 'w') do |f|
-    STDERR.puts f.path
-    f.puts "\n### Same Result Effective config and Defined config ? \n [#{res}]"
-  end
-
-  res = Utils.generate_effictive_create_script_from_effx(effx1)
-  File.open("#{tmpdir}/5-create_script_from_effective.log", 'w') do |f|
-    STDERR.puts f.path
-    f.puts "\n\n#### from Effective config generated Create Script:"
-    f.puts res
-  end
-
-  res = Utils.generate_all_create_script_from_defx(defx1)
-  File.open("#{tmpdir}/6-create_script_all_from_defined_config.log", 'w') do |f|
-    STDERR.puts f.path
-    f.puts "\n\n#### from Defined config generated Create Script:"
-    f.puts res
-  end
-
-  rvs = Utils.generate_split_cfg_create_script_from_defx(defx1)
-  rvs.each do |k,v|
-    File.open("#{tmpdir}/7-create_script_#{k}_from_defined_config.log", 'w') do |f|
+    File.open("#{tmpdir}/0-parse_summary.log", 'w') do |f|
       STDERR.puts f.path
-      f.puts "\n\n#### from Defined config #{k} generated Create Splited Script:"
-      f.puts v
+      f.puts "\n### Same Result on RACCParser and StringManualParser ? \n [#{dif1}, #{dif2}]"
+      unless dif1
+        PP.pp(defx1, f)
+        f.puts ''
+        PP.pp(defx2, f)
+      end
+      unless dif2
+        PP.pp(effx1, f)
+        f.puts ''
+        PP.pp(effx2, f)
+      end
+    end
+
+
+    cfgs, zones, aliass = defx1
+    File.open("#{tmpdir}/1-defined_config_summary.log", 'w') do |f|
+      STDERR.puts f.path
+      f.puts "\n#### Defined config summary: \ncfgs: #{cfgs.size}  zones: #{zones.size}  aliass: #{aliass.size}"
+      PP.pp({'all config'=>cfgs}, f, 220)
+      f.puts ''
+      PP.pp({'all zone'=>zones}, f, 220)
+      f.puts ''
+      PP.pp({'all alias'=>aliass}, f, 220)
+    end
+
+    File.open("#{tmpdir}/2-effective_config.log", 'w') do |f|
+      STDERR.puts f.path
+      f.puts "\n#### Effective config:"
+      PP.pp(effx1, f, 220)
+    end
+
+    res = defx_split_and_expand_ports(defx1)
+    File.open("#{tmpdir}/3-defined_config_split_expand_ports.log", 'w') do |f|
+      STDERR.puts f.path
+      f.puts "\n#### Show defined config split and expand ports:"
+      PP.pp(res, f, 220)
+    end
+
+    res = diff_defx_and_effx(defx1, effx1)
+    File.open("#{tmpdir}/4-diff_effective_defined_confg.log", 'w') do |f|
+      STDERR.puts f.path
+      f.puts "\n### Same Result Effective config and Defined config ? \n [#{res}]"
+    end
+
+    res = generate_effictive_create_script_from_effx(effx1)
+    File.open("#{tmpdir}/5-create_script_from_effective.log", 'w') do |f|
+      STDERR.puts f.path
+      f.puts "\n\n#### from Effective config generated Create Script:"
+      f.puts res
+    end
+
+    res = generate_all_create_script_from_defx(defx1)
+    File.open("#{tmpdir}/6-create_script_all_from_defined_config.log", 'w') do |f|
+      STDERR.puts f.path
+      f.puts "\n\n#### from Defined config generated Create Script:"
+      f.puts res
+    end
+
+    rvs = generate_split_cfg_create_script_from_defx(defx1)
+    rvs.each do |k,v|
+      File.open("#{tmpdir}/7-create_script_#{k}_from_defined_config.log", 'w') do |f|
+        STDERR.puts f.path
+        f.puts "\n\n#### from Defined config #{k} generated Create Splited Script:"
+        f.puts v
+      end
+    end
+
+    eff_cfgname = effx1.keys[0]
+    res = remove_not_effactive_cfg(defx1, eff_cfgname)
+    File.open("#{tmpdir}/8-remove_not_effactive_cfg.log", 'w') do |f|
+      STDERR.puts f.path
+      f.puts "\n\n#### delete not Effectived config, Keeped {#{eff_cfgname}} :"
+      f.puts res
     end
   end
 
-  eff_cfgname = effx1.keys[0]
-  res = Utils.remove_not_effactive_cfg(defx1, eff_cfgname)
-  File.open("#{tmpdir}/8-remove_not_effactive_cfg.log", 'w') do |f|
-    STDERR.puts f.path
-    f.puts "\n\n#### delete not Effectived config, Keeped {#{eff_cfgname}} :"
-    f.puts res
-  end
 end
+
 
 if __FILE__ == $0
+  fns = []
+  gvs1 = global_variables.dup
   while fn = ARGV.shift
-    if File.file? fn
-      STDERR.puts "\n----- #{fn} -----\n"
-      parse_file(fn)
+    if %w[-h --help].include? fn
+      STDERR.puts "\nSyntax:\n  ruby #{File.basename $0} [--keeporder] xx.log [xx.log ..]"
+      exit
+    elsif fn.start_with? '-'
+      fn = fn.sub(/^\-+/,'')
+      eval "\$#{fn} = true"
+    elsif File.file? fn
+      fns << fn
     end
+  end
+  gvs2 = global_variables.dup
+  STDERR.puts "set: #{gvs2 - gvs1}"
+
+  fns.each do |fn|
+      STDERR.puts "\n----- #{fn} -----\n"
+      SANUtil.parse_file(fn)
   end
 end
 
