@@ -9,7 +9,8 @@ require File.join(File.absolute_path(__dir__), "zoneshow.tab.rb")
 
 module SANUtil
 
-  def self.get_external_ret(cmd, zs_str_or_filename, tips)
+  # run external cmd
+  def self.get_external_ret(cmd, zs_str_or_filename, tips='ex')
     curr_dir = Dir.pwd
     Dir.chdir File.dirname(__FILE__)
     t0 = Time.now
@@ -49,6 +50,7 @@ module SANUtil
   end
 
 
+  # run racc pg
   def self.get_racc_pg_ret(str, cmd_type=nil)
     px = SANZoneRaccParser.new
     t0 = Time.now
@@ -62,6 +64,7 @@ module SANUtil
     [defx, effx]
   end
 
+  # run ruby manual pg
   def self.get_ruby_manual_pg_ret(str, cmd_type=nil)
     t0 = Time.now
     defx, effx2 = SANZoneStringManualParser.new.scan_str(str)
@@ -71,6 +74,7 @@ module SANUtil
     [defx2, effx2]
   end
 
+  # find zoneshow results from sanlog
   def self.find_zs_str(cfgfn)
     zoneshow_s = find_zoneshow_str_from_log(File.binread cfgfn)
     if zoneshow_s.empty?
@@ -81,6 +85,7 @@ module SANUtil
   end
 
 
+  # comare x and y , show diff
   def self.puts_diff(msg, x, y)
     dif = x==y
     puts " # #{msg}: #{dif}"
@@ -98,6 +103,7 @@ module SANUtil
     end
   end
 
+  # run_all_and_compare_result
   def self.run_all_and_compare_result
 
     zs_str = find_zs_str(ARGV[0] || 'cfg4.txt')
