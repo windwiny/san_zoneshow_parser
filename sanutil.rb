@@ -91,6 +91,31 @@ module SANUtil
     puts %{\#cfgenable #{cfgn}}
   end
 
+
+  # wwpns blocks.lines
+  # Roo::Excelx.new(fn).sheet('Sheet1')  # wwpn_alias_to_csv > xx.csv copy/paste to xlsx
+  def self.find_sanport_from_sanwwpn_sheet(wwpns, roo_sheet_or_to_a)
+    wwpns.each do |wwpn|
+      wwpn = wwpn.strip.downcase
+      if wwpn==''
+        p []
+        next
+      end
+      sanport = "no found 2"
+      roo_sheet_or_to_a.each_with_index  do |v, index|
+       if v[5].to_s.downcase.include?(wwpn)
+         sanport = v[1].chomp
+         break
+       elsif v[14].to_s.downcase.include?(wwpn)
+         sanport = v[10].chomp
+         break
+       end
+      end
+      p [wwpn + " " + sanport]
+    end
+    nil
+end
+
 end
 
 
@@ -108,7 +133,13 @@ __DOC__ = <<~'EOS'
  most common methods:
    cfgs0, zones0, aliases0, effx0 = SANUtil.sanlog2kvs(fn); nil  #-->  [Hash,Hash,Hash,Hash]
    SANUtil.wwpns_to_alinames(aliases0, csv_txt)   # -->   csv wwpns
-   SANUtil.get_wwpn_aliname_in_aliases(wwpn, aliases0)   #--> 
+   SANUtil.find_sanport_from_sanwwpn_sheet        # -->   roo excel using demo
+
+   parse_file(fn) same as external  zoneshow.tab.rb
+
+ external command:
+   zoneshow.tab.rb san1-01.log
+   wwpn_alias_to_csv.rb  1-defined_config_summary.log  san1-01.log san1-02.log ... > s1.csv
 
 EOS
 
