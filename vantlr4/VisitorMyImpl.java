@@ -28,7 +28,6 @@ class ValueUnion {
     }
 }
 
-
 public class VisitorMyImpl extends ZoneshowBaseVisitor<ValueUnion> {
     @Override
     public ValueUnion visitZoneshow1(ZoneshowParser.Zoneshow1Context ctx) {
@@ -43,6 +42,12 @@ public class VisitorMyImpl extends ZoneshowBaseVisitor<ValueUnion> {
         System.out.println(" !! not defined and effect\n");
         var r = new ValueUnion();
         r.ii = 99;
+        r.map1 = new HashMap<>();
+        ValueUnion.print_s_h("all config", r.map1);
+        ValueUnion.print_s_h("all zone", r.map1);
+        ValueUnion.print_s_h("all alias", r.map1);
+        ValueUnion.print_s_h("", r.map1);
+
         return r;
     }
 

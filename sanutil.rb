@@ -25,7 +25,7 @@ module SANUtil
     end
     defx0, effx0 = SANZoneRaccParser.new.scan_str zsstr
     cfgs0, zones0, aliases0 = defx0
-    puts %{diff defx0, effx0: #{diff_defx_and_effx(defx0, effx0)}}
+    puts %{diff defx == effx: #{diff_defx_and_effx(defx0, effx0)}}
     porta = aliases0.select { |e| aliases0[e].all? { |e1| e1.include?(':') ? false : true } }
     puts %{ all config: #{cfgs0.keys}\n all zone: #{zones0.keys.size}\n all alias: #{aliases0.keys.size}    alias using port: #{porta.size}\n active cfg: #{effx0.keys.join(',')}}
     [cfgs0, zones0, aliases0, effx0]
@@ -86,7 +86,7 @@ module SANUtil
         zs<< "#{x}_#{y}"
         puts %{zonecreate "#{x}_#{y}","#{x};#{y}" ;}
     end
-    puts %{cfgadd "#{cfgn}","#{zs.join ';'}"}
+    puts %{cfgadd "#{cfgn}","#{zs.join ';'}" ;}
     puts %{\#cfgsave}
     puts %{\#cfgenable #{cfgn}}
   end

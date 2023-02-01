@@ -1,0 +1,18 @@
+{
+  "name": "san-zoneshow-cfgshow-parser",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build -c vite.config-weblis.js; vite build -c vite.config-webvis.js"
+  },
+  "keywords": ["antlr4", "san zone", "parser"],
+  "author": "windwiny",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "antlr4": "4.12.0-beta.4"
+  }
+}

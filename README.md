@@ -7,8 +7,29 @@
     flex/bison      C language
     rexical/racc    Ruby language
     nex/yacc        Go language
-    ANTLR4 visitor/listener  Java/Python3 language
+    ANTLR4 visitor/listener  Java/Python3/TypeScript language
 
+
+## prepare
+
+    show Makefile    , generate code, comiple and run
+    show run_diff.rb , lexer/parser usage
+
+    ruby
+      gem install rexical racc
+
+    c flex/bison
+
+    go
+      github.com/blynn/nex
+      golang.org/x/tools/cmd/goyacc
+
+    antlr4
+     copy or link antlr-latest-complete.jar(>=4.12 for TypeScript target) to project directory.
+     install antlr4 runtime
+      java         CLASSPATH=.:$(pwd)/antlr-latest-complete.jar
+      python       pip3 install antlr4-python3-runtime
+      node js/ts   pnpm i -D antlr4 vite typescript
 
 
 ## run make create:
@@ -16,7 +37,7 @@
     c_zs
     zoneshow.tab.rb
     go_zs
-    vantlr4/(python3,java)(visitor,listener)
+    vantlr4/(java,py3,ts)(visitor,listener)
 
 
 ## run parser syntax:
@@ -52,19 +73,39 @@
     # from logfile generate Hash
     SANUtil.sanlog2kvs(fn)
 
-## other
-
-    # copy or link antlr-4.10.1-complete.jar to project directory.
-
-    other lexer/parser usage view run_diff.rb
+## other antlr
 
     ./go_zs <cfg1.txt
 
     env PYTHONPATH=vantlr4/py3_vis python vantlr4/MainVisitor.py < cfg4.txt
     env PYTHONPATH=vantlr4/py3_vis python vantlr4/MainVisitor.py   cfg4.txt
 
-    java -cp vantlr4:vantlr4/java_lis:antlr-4.10.1-complete.jar  ListenerMain < cfg4.txt
-    java -cp vantlr4:vantlr4/java_lis:antlr-4.10.1-complete.jar  ListenerMain   cfg4.txt
+    java -cp vantlr4:vantlr4/java_lis:antlr-latest-complete.jar  ListenerMain < cfg4.txt
+    java -cp vantlr4:vantlr4/java_lis:antlr-latest-complete.jar  ListenerMain   cfg4.txt
 
-    java -cp vantlr4:vantlr4/java_vis:antlr-4.10.1-complete.jar  VisitorMain < cfg4.txt
-    java -cp vantlr4:vantlr4/java_vis:antlr-4.10.1-complete.jar  VisitorMain   cfg4.txt
+    java -cp vantlr4:vantlr4/java_vis:antlr-latest-complete.jar  VisitorMain < cfg4.txt
+    java -cp vantlr4:vantlr4/java_vis:antlr-latest-complete.jar  VisitorMain   cfg4.txt
+
+
+## other antlr javascript/typescript node/web env
+
+    make ts_vis ts_lis   # generate ts target
+
+    tsc --outDir vantlr4/ts2js -m es2020 -t es2020 vantlr4/TsMainListener-node.ts vantlr4/TsMainVisitor-node.ts
+
+    # TODO FIXME js/ts
+
+    grep -E "import.*TsMy[^']*|import.*ts_.is[^']*" vantlr4/ts2js/*
+    ruby util-add-js-suffix.rb
+      # 8 position add .js suffix
+
+    node vantlr4/ts2js/TsMainListener-node.js < cfg4.txt
+    node vantlr4/ts2js/TsMainVisitor-node.js  < cfg4.txt
+
+    # work on web
+    pnpm run vite      # dev open web browser show html
+    pnpm run build     # build, and/or can change <script> in html,
+    ruby util-html-ch-nomodule.rb
+      # remove type-module crossorigin, use ./assets relative path , for offline use
+
+

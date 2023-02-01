@@ -318,7 +318,7 @@ module SANUtil
   end
 
 
-  # parse log file 
+  # parse log file
   # generate /tmp/ttt2/xxx/*.log
   def self.parse_file(fn)
     bd = File.directory?("/tmp") ? "/tmp/ttt2" : "c:"
@@ -439,4 +439,4 @@ if __FILE__ == $0
   end
 end
 
-:vim set sw=2 ts=2 sts=2 et
+#vim set sw=2 ts=2 sts=2 et

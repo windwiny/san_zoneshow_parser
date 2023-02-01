@@ -54,5 +54,14 @@ build/
 /vantlr4/go_vis
 /vantlr4/java_vis
 /vantlr4/py3_vis
+/vantlr4/ts
+/vantlr4/ts_lis
+/vantlr4/ts_vis
+
+.vscode
+node_modules
+/vantlr4/ts2js/
+/webgui-lis-release
+/webgui-vis-release
 
 

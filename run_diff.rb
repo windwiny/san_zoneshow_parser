@@ -87,18 +87,14 @@ module SANUtil
 
   # comare x and y , show diff
   def self.puts_diff(msg, x, y)
+    x = {} unless (x && x!={""=>{}})
+    y = {} unless (y && y!={""=>{}})
     dif = x==y
-    puts " # #{msg}: #{dif}"
+    empty = dif && (x=={} || x==[{"all config"=>{}}, {"all zone"=>{}}, {"all alias"=>{}}]) ? 'EMPTY' : ''
+    puts " # #{msg}:\t #{dif} #{empty}"
     unless dif
-      dd=Time.now.strftime 'zsdiff-%H%M%S'
-      if ( (String===x && x!='') || (Array===x && x.all?{|e|e!=nil}) ) && ( (String===y && y!='') || (Array===y && y.all?{|e|e!=nil}) )
-        left=File.join(Dir.tmpdir, dd+'-left.log' )
-        right=File.join(Dir.tmpdir, dd+'-right.log' )
-      #  File.open(left, 'wb') { |f| PP.pp(x, f) }
-      #  File.open(right, 'wb') { |f| PP.pp(y, f) }
-      end
-      p ['---- left ---- ', x.to_s.size, left]
-      p ['---- right ----', y.to_s.size, right]
+      p ['---- left ---- ', x.to_s.size, left, x.inspect[0..100] ]
+      p ['---- right ----', y.to_s.size, right, y.inspect[0..100] ]
       puts
     end
   end
@@ -126,13 +122,13 @@ module SANUtil
     end
 
     begin
-      defx4, effx4 = get_external_ret('java -cp vantlr4:vantlr4/java_vis:antlr-4.10.1-complete.jar  VisitorMain', zs_str, 'java antlr4/visitor')
+      defx4, effx4 = get_external_ret('java -cp vantlr4:vantlr4/java_vis:antlr-latest-complete.jar  VisitorMain', zs_str, 'java antlr4/visitor')
     rescue Exception => e
       STDERR.puts e
     end
 
     begin
-      defx5, effx5 = get_external_ret('java -cp vantlr4:vantlr4/java_lis:antlr-4.10.1-complete.jar  ListenerMain', zs_str, 'java antlr4/listener')
+      defx5, effx5 = get_external_ret('java -cp vantlr4:vantlr4/java_lis:antlr-latest-complete.jar  ListenerMain', zs_str, 'java antlr4/listener')
     rescue Exception => e
       STDERR.puts e
     end
@@ -145,6 +141,18 @@ module SANUtil
 
     begin
       defx7, effx7 = get_external_ret('env PYTHONPATH=vantlr4/py3_lis python vantlr4/MainListener.py', zs_str, 'python antlr4/listener')
+    rescue Exception => e
+      STDERR.puts e
+    end
+
+    begin
+      defx8, effx8 = get_external_ret('node vantlr4/ts2js/TsMainVisitor-node.js', zs_str, 'ts antlr4/visitor')
+    rescue Exception => e
+      STDERR.puts e
+    end
+
+    begin
+      defx9, effx9 = get_external_ret('node vantlr4/ts2js/TsMainListener-node.js', zs_str, 'ts antlr4/listener')
     rescue Exception => e
       STDERR.puts e
     end
@@ -201,6 +209,22 @@ module SANUtil
       puts_diff "diff <ruby/racc> and <python/antlr4/listener> effective configuration",  effx1, effx7
     else
       puts " ### not get  <python/antlr4/listener>"
+    end
+
+    puts
+    if defx8
+      puts_diff "diff <ruby/racc> and <typscript/antlr4/visitor> defined configuration",    defx1, defx8
+      puts_diff "diff <ruby/racc> and <typscript/antlr4/visitor> effective configuration",  effx1, effx8
+    else
+      puts " ### not get  <typscript/antlr4/visitor>"
+    end
+
+    puts
+    if defx9
+      puts_diff "diff <ruby/racc> and <typscript/antlr4/listener> defined configuration",    defx1, defx9
+      puts_diff "diff <ruby/racc> and <typscript/antlr4/listener> effective configuration",  effx1, effx9
+    else
+      puts " ### not get  <typscript/antlr4/listener>"
     end
 
     puts
