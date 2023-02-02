@@ -1,7 +1,7 @@
 import { CharStream, CommonTokenStream } from 'antlr4';
 import ZoneshowLexer from './ts_vis/ZoneshowLexer';
 import ZoneshowParser, { Zoneshow1Context, Zoneshow2Context, DefxContext, EffxContext, Cfgs2Context, Cfgs1Context, CfgContext, Zns2Context, Zns1Context, Zones1Context, Zones2Context, ZoneContext, Ans3Context, Ans2Context, Ans1Context, AnContext, Aliass2Context, Aliass1Context, AliasContext, Aps1Context, Aps3Context, Aps2Context, ApContext, Ezones2Context, Ezones1Context, EzoneContext, Port1Context, Port2Context, PortContext } from './ts_vis/ZoneshowParser';
-import ZoneshowVisitor from './ts_vis/ZoneshowVisitor'
+import ZoneshowVisitor from './ts_vis/ZoneshowVisitor';
 
 const ALL_CONFIG = "all config"
 const ALL_ZONE = "all zone"
@@ -291,8 +291,8 @@ function vis_parser(input: string, recvzsfn?: FMsMsAs) {
     const tree = parser.zoneshow();
 
     const custvis = new TsMyVisitorImpl(recvzsfn);
+    // tree.accept(custvis); // missing .d.ts has warning or use
     custvis.visit(tree)
-    // tree.accept(custvis);
 }
 
 export {
