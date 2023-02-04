@@ -2,8 +2,8 @@ import io
 import pprint
 import sys
 
-from ZoneshowParser import ZoneshowParser
-from ZoneshowListener import ZoneshowListener
+from py3_lis.ZoneshowParser import ZoneshowParser
+from py3_lis.ZoneshowListener import ZoneshowListener
 
 def print_result(result):
     defx, effx = result

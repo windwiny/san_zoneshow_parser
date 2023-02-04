@@ -1,8 +1,9 @@
-import pdb
+#!/usr/bin/env python3
+
 import sys
 from antlr4 import *
-from ZoneshowLexer import ZoneshowLexer
-from ZoneshowParser import ZoneshowParser
+from py3_vis.ZoneshowLexer import ZoneshowLexer
+from py3_vis.ZoneshowParser import ZoneshowParser
 
 from MyVisitorImpl import MyVisitorImpl
 

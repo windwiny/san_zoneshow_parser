@@ -2,10 +2,11 @@ import java.util.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import java_lis.*;
 
 public class ListenerMyImpl extends ZoneshowBaseListener {
-    List<String> ports ,aps, ans ,zns ;
-    Map<String, List<String>> ezone,ezones , alias, aliass , zone, zones, cfg, cfgs;
+    List<String> ports, aps, ans, zns;
+    Map<String, List<String>> ezone, ezones, alias, aliass, zone, zones, cfg, cfgs;
     String ap;
 
     List<Map<String, List<String>>> defx;
@@ -55,7 +56,6 @@ public class ListenerMyImpl extends ZoneshowBaseListener {
         print_s_h("all zone", v);
         print_s_h("all alias", v);
         print_s_h("", v);
-        return;
     }
 	@Override public void enterDefx(ZoneshowParser.DefxContext ctx) {
     }

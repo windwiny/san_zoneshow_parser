@@ -79,11 +79,11 @@ java_lis_genfiles: vantlr4/java_lis/ZoneshowListener.class vantlr4/java_lis/Zone
 java_lis_userfiles:vantlr4/ListenerMain.class vantlr4/ListenerMyImpl.class
 
 vantlr4/Listener%.class : vantlr4/Listener%.java
-	javac -cp .:vantlr4:vantlr4/java_lis:${ANTLRJAR} $<
+	javac -cp .:vantlr4:${ANTLRJAR} vantlr4/Listener*.java
 
 vantlr4/java_lis/Zoneshow%.class: Zoneshow.g4
-	java -jar ${ANTLRJAR} -listener -no-visitor -o vantlr4/java_lis  $<
-	javac -cp .:vantlr4:vantlr4/java_lis:${ANTLRJAR} vantlr4/java_lis/*.java
+	java -jar ${ANTLRJAR} -listener -no-visitor -o vantlr4/java_lis -package java_lis  $<
+	javac -cp vantlr4:${ANTLRJAR} vantlr4/java_lis/*.java
 
 
 .PHONY: java_vis
@@ -92,11 +92,11 @@ java_vis_genfiles: vantlr4/java_vis/ZoneshowVisitor.class vantlr4/java_vis/Zones
 java_vis_userfiles:vantlr4/VisitorMain.class vantlr4/VisitorMyImpl.class
 
 vantlr4/Visitor%.class : vantlr4/Visitor%.java
-	javac -cp .:vantlr4:vantlr4/java_vis:${ANTLRJAR} $<
+	javac -cp .:vantlr4:${ANTLRJAR} vantlr4/Visitor*.java
 
 vantlr4/java_vis/Zoneshow%.class: Zoneshow.g4
-	java -jar ${ANTLRJAR} -no-listener -visitor -o vantlr4/java_vis  $<
-	javac -cp .:vantlr4:vantlr4/java_vis:${ANTLRJAR} vantlr4/java_vis/*.java
+	java -jar ${ANTLRJAR} -no-listener -visitor -o vantlr4/java_vis -package java_vis  $<
+	javac -cp vantlr4:${ANTLRJAR} vantlr4/java_vis/*.java
 
 
 

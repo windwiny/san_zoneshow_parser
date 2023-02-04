@@ -1,8 +1,9 @@
+#!/usr/bin/env python3
 
 import sys
 from antlr4 import *
-from ZoneshowLexer import ZoneshowLexer
-from ZoneshowParser import ZoneshowParser
+from py3_lis.ZoneshowLexer import ZoneshowLexer
+from py3_lis.ZoneshowParser import ZoneshowParser
 
 from MyListenerImpl import MyListenerImpl
 

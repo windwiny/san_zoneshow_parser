@@ -122,25 +122,25 @@ module SANUtil
     end
 
     begin
-      defx4, effx4 = get_external_ret('java -cp vantlr4:vantlr4/java_vis:antlr-latest-complete.jar  VisitorMain', zs_str, 'java antlr4/visitor')
+      defx4, effx4 = get_external_ret('java -cp vantlr4:antlr-latest-complete.jar  VisitorMain', zs_str, 'java antlr4/visitor')
     rescue Exception => e
       STDERR.puts e
     end
 
     begin
-      defx5, effx5 = get_external_ret('java -cp vantlr4:vantlr4/java_lis:antlr-latest-complete.jar  ListenerMain', zs_str, 'java antlr4/listener')
+      defx5, effx5 = get_external_ret('java -cp vantlr4:antlr-latest-complete.jar  ListenerMain', zs_str, 'java antlr4/listener')
     rescue Exception => e
       STDERR.puts e
     end
 
     begin
-      defx6, effx6 = get_external_ret('env PYTHONPATH=vantlr4/py3_vis python vantlr4/MainVisitor.py', zs_str, 'python antlr4/visitor')
+      defx6, effx6 = get_external_ret('python vantlr4/MainVisitor.py', zs_str, 'python antlr4/visitor')
     rescue Exception => e
       STDERR.puts e
     end
 
     begin
-      defx7, effx7 = get_external_ret('env PYTHONPATH=vantlr4/py3_lis python vantlr4/MainListener.py', zs_str, 'python antlr4/listener')
+      defx7, effx7 = get_external_ret('python vantlr4/MainListener.py', zs_str, 'python antlr4/listener')
     rescue Exception => e
       STDERR.puts e
     end

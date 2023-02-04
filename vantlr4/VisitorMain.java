@@ -1,6 +1,7 @@
 import java.io.*;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
+import java_vis.*;
 
 public class VisitorMain {
     public static void main(String[] args) throws IOException {

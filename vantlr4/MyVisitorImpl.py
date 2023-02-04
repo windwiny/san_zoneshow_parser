@@ -1,9 +1,8 @@
 import sys
 from antlr4 import *
-from ZoneshowParser import ZoneshowParser
 
-from ZoneshowVisitor import ZoneshowVisitor
-
+from py3_vis.ZoneshowParser import ZoneshowParser
+from py3_vis.ZoneshowVisitor import ZoneshowVisitor
 
 def print_s_h(name, head):
     print('{"%s"=> {\n' % name, end='')

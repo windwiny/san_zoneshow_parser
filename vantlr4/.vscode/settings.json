@@ -1,0 +1,7 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "../antlr-latest-complete.jar"
+    ],
+    "python.envFile": "${workspaceFolder}/.env",
+}

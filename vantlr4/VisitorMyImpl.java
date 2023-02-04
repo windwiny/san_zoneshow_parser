@@ -1,6 +1,7 @@
 import java.util.HashMap;
 import java.util.List;
 import java.util.LinkedList;
+import java_vis.*;
 
 class ValueUnion {
     int ii;
@@ -39,7 +40,7 @@ public class VisitorMyImpl extends ZoneshowBaseVisitor<ValueUnion> {
 
     @Override
     public ValueUnion visitZoneshow2(ZoneshowParser.Zoneshow2Context ctx) {
-        System.out.println(" !! not defined and effect\n");
+        System.err.println(" !! not defined and effect\n");
         var r = new ValueUnion();
         r.ii = 99;
         r.map1 = new HashMap<>();
@@ -47,7 +48,6 @@ public class VisitorMyImpl extends ZoneshowBaseVisitor<ValueUnion> {
         ValueUnion.print_s_h("all zone", r.map1);
         ValueUnion.print_s_h("all alias", r.map1);
         ValueUnion.print_s_h("", r.map1);
-
         return r;
     }
 
