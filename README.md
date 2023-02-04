@@ -10,7 +10,7 @@
 
 ## prepare
 
-    show Makefile    , generate code, comiple and run
+    show Makefile    , generate code, compile and run
     show run_diff.rb , lexer/parser usage
 
     ruby
@@ -68,16 +68,16 @@
 
 ## other antlr
 
-    ./go_zs <cfg1.txt
+    ./go_zs < cfg4.txt
 
-    env PYTHONPATH=vantlr4/py3_vis python vantlr4/MainVisitor.py < cfg4.txt
-    env PYTHONPATH=vantlr4/py3_vis python vantlr4/MainVisitor.py   cfg4.txt
+    python vantlr4/MainListener.py < cfg4.txt
+    python vantlr4/MainVisitor.py  < cfg4.txt
 
-    java -cp vantlr4:vantlr4/java_lis:antlr-latest-complete.jar  ListenerMain < cfg4.txt
-    java -cp vantlr4:vantlr4/java_lis:antlr-latest-complete.jar  ListenerMain   cfg4.txt
+    java -cp vantlr4:antlr-latest-complete.jar  ListenerMain < cfg4.txt
+    java -cp vantlr4:antlr-latest-complete.jar  ListenerMain   cfg4.txt
 
-    java -cp vantlr4:vantlr4/java_vis:antlr-latest-complete.jar  VisitorMain < cfg4.txt
-    java -cp vantlr4:vantlr4/java_vis:antlr-latest-complete.jar  VisitorMain   cfg4.txt
+    java -cp vantlr4:antlr-latest-complete.jar  VisitorMain < cfg4.txt
+    java -cp vantlr4:antlr-latest-complete.jar  VisitorMain   cfg4.txt
 
 ## other antlr javascript/typescript node/web env
 
