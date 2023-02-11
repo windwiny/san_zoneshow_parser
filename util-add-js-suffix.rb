@@ -1,5 +1,9 @@
 #!/usr/bin/env ruby
 
+
+# tsc compile .ts to .js, import statement missing .js
+# add .js suffix
+
 fslis = %w[
 vantlr4/ts2js/TsMainListener-node.js
 vantlr4/ts2js/TsMyListenerImpl.js
@@ -9,13 +13,17 @@ vantlr4/ts2js/TsMainVisitor-node.js
 vantlr4/ts2js/TsMyVisitorImpl.js
 ]
 
-fs = fslis + fsvis
-if ARGV.include?('--Listener')
+if ARGV.size == 0
+  fs = fslis + fsvis
+elsif ARGV.include?('--Listener')
   fs = fslis
 elsif ARGV.include?('--Visitor')
   fs = fsvis
+else
+  fs = ARGV.map { |mat| Dir.glob(mat) }.flatten.select { |fn| fn=~/\.js$/ }
 end
 
+p fs
 
 fs.each do |fn|
   d = File.read(fn)
@@ -28,11 +36,10 @@ fs.each do |fn|
       ss.chomp("';") + '.js' + "';"
     end
   end
-  p [fn , d.size, d2.size, d2.size-d.size ]
   if [3,9].include?(d2.size-d.size)
-    p "update #{fn}"
+    puts " update #{fn}, #{d2.size}-#{d.size}=#{d2.size-d.size}"
     File.write(fn, d2)
   else
-    p "NOT update #{fn},  same as old and new #{d==d2}"
+    puts " NOT update #{fn}, #{d2.size}-#{d.size}=#{d2.size-d.size}. old #{d==d2 ? '==' : '!=' } now"
   end
 end

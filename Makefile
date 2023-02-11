@@ -63,12 +63,17 @@ ANTLRJAR:=antlr-latest-complete.jar
 #antlr4:=java -Xmx500M -cp .:${ANTLRJAR} org.antlr.v4.Tool
 #antlr4:=java -jar ${ANTLRJAR}
 
-.PHONY: clean_antlr
+.PHONY: clean_antlr clean_antlr_go clean_antlr_java clean_antlr_py3 clean_antlr_ts
 
-clean_antlr:
-	rm -fr vantlr4/go_lis vantlr4/java_lis vantlr4/py3_lis vantlr4/ts_lis webgui-lis-release
-	rm -fr vantlr4/go_vis vantlr4/java_vis vantlr4/py3_vis vantlr4/ts_vis webgui-vis-release
-	rm -fr vantlr4/*.class vantlr4/ts2js
+clean_antlr: clean_antlr_go clean_antlr_java clean_antlr_py3 clean_antlr_ts
+clean_antlr_go:
+	rm -fr vantlr4/go_lis vantlr4/go_vis
+clean_antlr_java:
+	rm -fr vantlr4/java_lis vantlr4/java_vis vantlr4/*.class
+clean_antlr_py3:
+	rm -fr vantlr4/py3_lis vantlr4/py3_vis
+clean_antlr_ts:
+	rm -fr vantlr4/ts_lis webgui-lis-release vantlr4/ts_vis webgui-vis-release vantlr4/ts2js
 
 
 

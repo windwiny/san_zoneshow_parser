@@ -2,11 +2,11 @@ lockfileVersion: 5.4
 
 specifiers:
   '@types/node': ^18.11.18
-  antlr4: 4.12.0-beta.4
+  antlr4: '*4.12.0-beta.5'
 
 devDependencies:
   '@types/node': 18.11.18
-  antlr4: 4.12.0-beta.4
+  antlr4: 4.12.0-beta.5
 
 packages:
 
@@ -14,7 +14,7 @@ packages:
     resolution: {integrity: sha512-DHQpWGjyQKSHj3ebjFI/wRKcqQcdR+MoFBygntYOZytCqNfkd2ZC4ARDJ2DQqhjH5p85Nnd3jhUJIXrszFX/JA==}
     dev: true
 
-  /antlr4/4.12.0-beta.4:
-    resolution: {integrity: sha512-yslpX8ma+Xat1hDuevR5+XiyAQkvxgK77Znw2USb2ExJ3dk/K7a2IEm1B2zbOu48na4CD4uHqvCJz7qwyJaDcA==}
+  /antlr4/4.12.0-beta.5:
+    resolution: {integrity: sha512-HktfuNxABJsNKdnHHKdPI5g3Qv8tfHe809DxHjg3GsWIoPa+oB5h+GFukmXt7GeLDMgO6I+vQLirorQl7sgI7w==}
     engines: {node: '>=16'}
     dev: true

@@ -6,13 +6,13 @@
   "description": "",
   "scripts": {
     "dev": "vite",
-    "build": "vite build -c vite.config-weblis.js; vite build -c vite.config-webvis.js"
+    "build": "echo make ts_lis ts_vis"
   },
   "keywords": ["antlr4", "san zone", "parser"],
   "author": "windwiny",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^18.11.18",
-    "antlr4": "4.12.0-beta.4"
+    "antlr4": "*4.12.0-beta.5"
   }
 }

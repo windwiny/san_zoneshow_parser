@@ -93,8 +93,8 @@ module SANUtil
     empty = dif && (x=={} || x==[{"all config"=>{}}, {"all zone"=>{}}, {"all alias"=>{}}]) ? 'EMPTY' : ''
     puts " # #{msg}:\t #{dif} #{empty}"
     unless dif
-      p ['---- left ---- ', x.to_s.size, left, x.inspect[0..100] ]
-      p ['---- right ----', y.to_s.size, right, y.inspect[0..100] ]
+      p ['---- left ---- ', x.to_s.size, x.inspect[0..100] ]
+      p ['---- right ----', y.to_s.size, y.inspect[0..100] ]
       puts
     end
   end
@@ -213,18 +213,18 @@ module SANUtil
 
     puts
     if defx8
-      puts_diff "diff <ruby/racc> and <typscript/antlr4/visitor> defined configuration",    defx1, defx8
-      puts_diff "diff <ruby/racc> and <typscript/antlr4/visitor> effective configuration",  effx1, effx8
+      puts_diff "diff <ruby/racc> and <typescript/antlr4/visitor> defined configuration",    defx1, defx8
+      puts_diff "diff <ruby/racc> and <typescript/antlr4/visitor> effective configuration",  effx1, effx8
     else
-      puts " ### not get  <typscript/antlr4/visitor>"
+      puts " ### not get  <typescript/antlr4/visitor>"
     end
 
     puts
     if defx9
-      puts_diff "diff <ruby/racc> and <typscript/antlr4/listener> defined configuration",    defx1, defx9
-      puts_diff "diff <ruby/racc> and <typscript/antlr4/listener> effective configuration",  effx1, effx9
+      puts_diff "diff <ruby/racc> and <typescript/antlr4/listener> defined configuration",    defx1, defx9
+      puts_diff "diff <ruby/racc> and <typescript/antlr4/listener> effective configuration",  effx1, effx9
     else
-      puts " ### not get  <typscript/antlr4/listener>"
+      puts " ### not get  <typescript/antlr4/listener>"
     end
 
     puts

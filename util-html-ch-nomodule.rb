@@ -1,22 +1,29 @@
 #!/usr/bin/env ruby
 
-mat = 'webgui-*/index-*.html'
-if ARGV.include?('--Listener')
-  mat = 'webgui-*/index-lis.html'
+# remove html <script> attr type=module and crossorigin, use ./assets relative path,
+# for offline used. open file:///xxx.html
+
+fsl = ['webgui-lis-release/index-lis.html']
+fsv = ['webgui-vis-release/index-vis.html']
+if ARGV.size == 0
+  fs = fsl + fsv
+elsif ARGV.include?('--Listener')
+  fs = fsl
 elsif ARGV.include?('--Visitor')
-  mat = 'webgui-*/index-vis.html'
+  fs = fsv
+else
+  fs = ARGV.map { |mat| Dir.glob(mat) }.flatten.select { |fn| fn=~/\.html$/i }
 end
 
-fs = Dir.glob(mat)
+p fs
 
 fs.each do |fn|
   d = File.read(fn)
   d2 = d.gsub('type="module" crossorigin src="/assets', 'src="./assets')
-  p [fn , d.size, d2.size, d2.size-d.size ]
   if d != d2
-    p "update #{fn}"
+    puts " update #{fn}, #{d2.size}-#{d.size}=#{d2.size-d.size}"
     File.write(fn, d2)
   else
-    p "NOT update #{fn},  old == new"
+    puts " NOT update #{fn}, #{d.size} bytes.  old == new"
   end
 end

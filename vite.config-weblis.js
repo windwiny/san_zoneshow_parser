@@ -6,7 +6,9 @@ export default {
             },
         },
         target: 'chrome58',
+        minify: false,
         outDir: 'webgui-lis-release',
 
     }
 }
+

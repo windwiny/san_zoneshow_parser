@@ -81,21 +81,19 @@
 
 ## other antlr javascript/typescript node/web env
 
-    make ts_vis ts_lis   # generate ts target
+    #   Refer to the Makefile
+    # npmjs package  antlr4 >= 4.12.0-beta.4,
+    #  review *.js not use `fs`/`net` .. Node.js module
 
-    tsc -t es2020 -m es2020 --moduleResolution node --esModuleInterop --outDir vantlr4/ts2js vantlr4/TsMainListener-node.ts vantlr4/TsMainVisitor-node.ts
+    make ts_vis ts_lis
 
-    # TODO FIXME js/ts
-
-    grep -E "import.*TsMy[^']*|import.*ts_.is[^']*" vantlr4/ts2js/*
+    tsc xxx
     ruby util-add-js-suffix.rb
-      # 8 position add .js suffix
 
     node vantlr4/ts2js/TsMainListener-node.js < cfg4.txt
     node vantlr4/ts2js/TsMainVisitor-node.js  < cfg4.txt
 
     # work on web
-    pnpm run vite      # dev open web browser show html
-    pnpm run build     # build, and/or can change`<script>` in html,
+    vite                 # dev open web browser show html
+    vite build -c xxx    # build, and/or can change`<script>` in html,
     ruby util-html-ch-nomodule.rb
-      # remove type-module crossorigin, use ./assets relative path , for offline use
