@@ -136,7 +136,7 @@ vantlr4/ts_lis/Zoneshow%.ts:  Zoneshow.g4
 vantlr4/ts2js/TsMainListener-node.js: Zoneshow.g4 vantlr4/TsMyListenerImpl.ts vantlr4/TsMainListener-node.ts
 	-tsc -t es2020 -m es2020 --moduleResolution node --esModuleInterop --outDir vantlr4/ts2js  vantlr4/TsMainListener-node.ts
 	ruby util-add-js-suffix.rb --Listener
-webgui-lis-release/index-lis.html:    Zoneshow.g4 vantlr4/TsMyListenerImpl.ts vantlr4/TsMainListener-web.ts index-lis.html
+webgui-lis-release/index-lis.html:    Zoneshow.g4 vantlr4/TsMyListenerImpl.ts vantlr4/TsMainListener-web.ts vantlr4/TsMain-comm-web.ts index-lis.html
 	vite build -c vite.config-weblis.js
 	ruby util-html-ch-nomodule.rb --Listener
 
@@ -151,7 +151,7 @@ vantlr4/ts_vis/Zoneshow%.ts:  Zoneshow.g4
 vantlr4/ts2js/TsMainVisitor-node.js: Zoneshow.g4 vantlr4/TsMyVisitorImpl.ts vantlr4/TsMainVisitor-node.ts
 	-tsc -t es2020 -m es2020 --moduleResolution node --esModuleInterop --outDir vantlr4/ts2js  vantlr4/TsMainVisitor-node.ts
 	ruby util-add-js-suffix.rb --Visitor
-webgui-vis-release/index-vis.html:   Zoneshow.g4 vantlr4/TsMyVisitorImpl.ts vantlr4/TsMainVisitor-web.ts index-vis.html
+webgui-vis-release/index-vis.html:   Zoneshow.g4 vantlr4/TsMyVisitorImpl.ts vantlr4/TsMainVisitor-web.ts vantlr4/TsMain-comm-web.ts index-vis.html
 	vite build -c vite.config-webvis.js
 	ruby util-html-ch-nomodule.rb --Visitor
 

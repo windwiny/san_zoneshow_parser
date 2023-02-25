@@ -1,6 +1,7 @@
 import process from 'process';
 
 import { vis_parser, MsAs, MsMsAs } from './TsMyVisitorImpl';
+const parser = vis_parser
 
 function afterfn(zs: MsMsAs) {
     let ass: Array<string> = []
@@ -19,7 +20,7 @@ function main() {
         sss += data
     })
     process.stdin.on('end', function () {
-        vis_parser(sss, afterfn)
+        parser(sss, afterfn)
     })
 }
 

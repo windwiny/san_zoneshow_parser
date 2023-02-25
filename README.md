@@ -82,8 +82,8 @@
 ## other antlr javascript/typescript node/web env
 
     #   Refer to the Makefile
-    # npmjs package  antlr4 >= 4.12.0-beta.4,
-    #  review *.js not use `fs`/`net` .. Node.js module
+    # npmjs package  antlr4 >= 4.12.0
+    # add `"targets": {"chrome": "58","node":"16"}` to .babelrc, run npx webpack rebuild dist/ generate ES6 js
 
     make ts_vis ts_lis
 

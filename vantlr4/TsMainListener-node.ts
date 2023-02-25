@@ -1,6 +1,7 @@
 import process from 'process';
 
 import { lis_parser, MsAs, MsMsAs } from './TsMyListenerImpl';
+const parser = lis_parser
 
 function afterfn(zs: MsMsAs) {
     let ass: Array<string> = []
@@ -19,7 +20,7 @@ function main() {
         sss += data
     })
     process.stdin.on('end', function () {
-        lis_parser(sss, afterfn)
+        parser(sss, afterfn)
     })
 }
 

@@ -284,13 +284,14 @@ class TsMyVisitorImpl extends ZoneshowVisitor<ValueUnion> {
 }
 
 function vis_parser(input: string, recvzsfn?: FMsMsAs) {
+    const custvis = new TsMyVisitorImpl(recvzsfn);
+
     const chars = new CharStream(input);
     const lexer = new ZoneshowLexer(chars);
     const tokens = new CommonTokenStream(lexer);
     const parser = new ZoneshowParser(tokens);
     const tree = parser.zoneshow();
 
-    const custvis = new TsMyVisitorImpl(recvzsfn);
     // tree.accept(custvis); // missing .d.ts has warning or use
     custvis.visit(tree)
 }

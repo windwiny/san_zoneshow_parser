@@ -204,13 +204,14 @@ class TsMyListenerImpl extends ZoneshowListener {
 }
 
 function lis_parser(input: string, recvzsfn?: FMsMsAs) {
+    const custlis = new TsMyListenerImpl(recvzsfn);
+
     const chars = new CharStream(input);
     const lexer = new ZoneshowLexer(chars);
     const tokens = new CommonTokenStream(lexer);
     const parser = new ZoneshowParser(tokens);
     const tree = parser.zoneshow();
 
-    const custlis = new TsMyListenerImpl(recvzsfn);
     ParseTreeWalker.DEFAULT.walk(custlis, tree);
 }
 
