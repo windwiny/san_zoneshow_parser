@@ -4,6 +4,12 @@ require "pp"
 require "open3"
 require "tempfile"  # Dir.tmpdir
 
+if Gem.win_platform?
+    CLASSPATH1='vantlr4;antlr-latest-complete.jar'
+else
+    CLASSPATH1='vantlr4:antlr-latest-complete.jar'
+end
+
 require File.join(File.absolute_path(__dir__), "zoneshow.tab.rb")
 
 
@@ -122,13 +128,13 @@ module SANUtil
     end
 
     begin
-      defx4, effx4 = get_external_ret('java -cp vantlr4:antlr-latest-complete.jar  VisitorMain', zs_str, 'java antlr4/visitor')
+      defx4, effx4 = get_external_ret(%{java -cp #{CLASSPATH1}  VisitorMain}, zs_str, 'java antlr4/visitor')
     rescue Exception => e
       STDERR.puts e
     end
 
     begin
-      defx5, effx5 = get_external_ret('java -cp vantlr4:antlr-latest-complete.jar  ListenerMain', zs_str, 'java antlr4/listener')
+      defx5, effx5 = get_external_ret(%{java -cp #{CLASSPATH1}  ListenerMain}, zs_str, 'java antlr4/listener')
     rescue Exception => e
       STDERR.puts e
     end

@@ -1,8 +1,24 @@
 
+
+ifeq ($(OS),Windows_NT)
+	EXT:=.exe
+	ANTLRJAR:=antlr-latest-complete.jar
+	CLASSPATH1:=.;vantlr4;${ANTLRJAR}
+else
+	EXT:=
+	ANTLRJAR:=antlr-latest-complete.jar
+	CLASSPATH1:=.:vantlr4;${ANTLRJAR}
+endif
+
+#antlr4:=java -Xmx500M -cp .:${ANTLRJAR} org.antlr.v4.Tool
+#antlr4:=java -jar ${ANTLRJAR}
+
+
+
 ## default target, build all source verion
 
 .PHONY: all
-all: ruby_zs c_zs go_zs   java_vis java_lis   py3_vis py3_lis   ts_vis ts_lis
+all: ruby_zs c_zs${EXT} go_zs${EXT}   java_vis java_lis   py3_vis py3_lis   ts_vis ts_lis
 
 
 ## ruby all verion , show output is equal
@@ -15,8 +31,8 @@ diff: all
 
 
 ### c source flex/bison version
-c_zs: z.tab.c z.lex.c
-	gcc -o c_zs $<
+c_zs${EXT}: z.tab.c z.lex.c
+	gcc -o $@ $<
 
 z.tab.c: z.y
 	bison -v -d $<
@@ -46,7 +62,7 @@ zoneshow.rex.rb: zoneshow.rex
 
 
 ### go source nex/goracc version
-go_zs: main.go go.y.go go.nn.go
+go_zs${EXT}: main.go go.y.go go.nn.go
 	go build -o $@  main.go go.y.go go.nn.go
 
 go.y.go: go.y
@@ -59,9 +75,6 @@ go.nn.go: go.nex
 
 
 
-ANTLRJAR:=antlr-latest-complete.jar
-#antlr4:=java -Xmx500M -cp .:${ANTLRJAR} org.antlr.v4.Tool
-#antlr4:=java -jar ${ANTLRJAR}
 
 .PHONY: clean_antlr clean_antlr_go clean_antlr_java clean_antlr_py3 clean_antlr_ts
 
@@ -84,11 +97,11 @@ java_lis_genfiles: vantlr4/java_lis/ZoneshowListener.class vantlr4/java_lis/Zone
 java_lis_userfiles:vantlr4/ListenerMain.class vantlr4/ListenerMyImpl.class
 
 vantlr4/Listener%.class : vantlr4/Listener%.java
-	javac -cp .:vantlr4:${ANTLRJAR} vantlr4/Listener*.java
+	javac -cp ${CLASSPATH1} vantlr4/Listener*.java
 
 vantlr4/java_lis/Zoneshow%.class: Zoneshow.g4
 	java -jar ${ANTLRJAR} -listener -no-visitor -o vantlr4/java_lis -package java_lis  $<
-	javac -cp vantlr4:${ANTLRJAR} vantlr4/java_lis/*.java
+	javac -cp ${CLASSPATH1} vantlr4/java_lis/*.java
 
 
 .PHONY: java_vis
@@ -97,11 +110,11 @@ java_vis_genfiles: vantlr4/java_vis/ZoneshowVisitor.class vantlr4/java_vis/Zones
 java_vis_userfiles:vantlr4/VisitorMain.class vantlr4/VisitorMyImpl.class
 
 vantlr4/Visitor%.class : vantlr4/Visitor%.java
-	javac -cp .:vantlr4:${ANTLRJAR} vantlr4/Visitor*.java
+	javac -cp ${CLASSPATH1} vantlr4/Visitor*.java
 
 vantlr4/java_vis/Zoneshow%.class: Zoneshow.g4
 	java -jar ${ANTLRJAR} -no-listener -visitor -o vantlr4/java_vis -package java_vis  $<
-	javac -cp vantlr4:${ANTLRJAR} vantlr4/java_vis/*.java
+	javac -cp ${CLASSPATH1} vantlr4/java_vis/*.java
 
 
 
