@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <title>test zoneshow parser Listener</title>
+    <meta charset="utf-8">
+    <script src="./vantlr4/te-md5.js" type="module"></script>
+    <script src="./public/js/d3.js"></script>
+    <script src="./public/js/graphviz.umd.js"></script>
+    <script src="./public/js/d3-graphviz.js"></script>
+</head>
+
+<body>
+
+    <div>
+        <a href="./index-lis.html">index-lis</a><br>
+        <a href="./index-vis.html">index-vis</a>
+        <a href="./index-diff.html">index-vis</a>
+        <hr>
+    </div>
+    <div>
+        <h3>test zoneshow parser Listener</h3>
+    </div>
+    <div>
+        <div>
+            <input type="file" id="f1" size="60">
+        </div>
+        <div>
+            <textarea name="zrs" id="zrs" cols="90" rows="10"></textarea><br>
+        </div>
+        <button id="btnparse">parse</button><br>
+        <div>
+            <textarea name="zout" id="zout" cols="90" rows="10"></textarea>
+        </div>
+    </div>
+
+    <div>
+        <button onclick="nw();">open new win</button>
+        <button onclick="p1();">postmsg</button>
+        <script>
+            function ccc(e) {
+                gg.postMessage('abcdefgh')
+            }
+
+            window.onmessage = function (e) {
+                console.log('window message:', e)
+            }
+            var w2, s1, m1
+            s1 = new Set([1, 2, 1])
+            m1 = new Map([[3, 54]])
+            function nw() {
+                if (typeof w2 === 'undefined') w2 = window.open('#')
+            }
+            function p1() {
+                w2.postMessage({ aa: 3, s1: s1, m1 })
+            }
+        </script>
+    </div>
+
+    <hr>
+
+    <label for="">Graph</label>
+    <div id="graph" style="text-align: center;"></div>
+    <div>
+        <textarea id="in_dot" cols="30" rows="10">graph{aa--bb;}</textarea>
+        <button onclick="gendot()">gen dot</button>
+    </div>
+    <script>
+        function gendot() {
+            let sss = in_dot.value
+            d3.select("#graph").graphviz()
+                .renderDot(
+                    sss
+                );
+        }
+    </script>
+
+
+</body>
+
+</html>

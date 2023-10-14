@@ -6,22 +6,80 @@
     <meta charset="utf-8">
     <script src="./vantlr4/TsMainListener-web.ts" type="module"></script>
     <script src="./vantlr4/TsMain-comm-web.ts" type="module"></script>
+    <script src="./public/js/d3.js"></script>
+    <script src="./public/js/graphviz.umd.js"></script>
+    <script src="./public/js/d3-graphviz.js"></script>
 </head>
 
 <body>
-    <div><h3>test zoneshow parser Listener</h3></div>
+    <div>
+        <h3>test zoneshow parser Listener</h3>
+    </div>
     <div>
         <div>
+            <label for="encode_name">encoding</label>
+            <input type="text" id="encode_name" size="5"/>
+            <select name="encode" id="encode_sel">
+                <option value="utf-8">utf-8</option>
+                <option value="utf-16be">utf-16be</option>
+                <option value="utf-16le">utf-16le</option>
+                <option value="gbk">gbk</option>
+            </select>
             <input type="file" id="f1" size="60">
+            <input type="checkbox" id="wrap" value="off"><label for="wrap">line wrap</label>
+            <button id="resetfile">reset</button>
         </div>
         <div>
             <textarea name="zrs" id="zrs" cols="90" rows="10"></textarea><br>
         </div>
         <button id="btnparse">parse</button><br>
-        <div>
+        <div id="zouts">
             <textarea name="zout" id="zout" cols="90" rows="10"></textarea>
         </div>
     </div>
+    <hr>
+
+    <div>
+        <label >Generate Create Zone Script</label>
+        <div>
+            <textarea id="in_svrs" cols="20" rows="3"></textarea>
+            <textarea id="in_stors" cols="20" rows="3"></textarea>
+            <textarea id="to_cfgname" cols="20" rows="1"></textarea>
+            <button id="generate_create_zone">generate</button>
+        </div>
+        <label>Generate remove zone script</label>
+        <div>
+            <textarea id="in_dev" cols="20" rows="3"></textarea>
+            <button id="generate_remove_zone">generate</button>
+        </div>
+        <label>Script</label>
+        <div>
+            <textarea id="out_scr" cols="120" rows="5"></textarea>
+        </div>
+    </div>
+    <hr>
+
+    <div>
+
+        <hr>
+        <div id="graph"></div>
+        <textarea id="in_dot" cols="130" rows="30"></textarea>
+        <button id="btn_gendot">gen dot scr</button>
+        <button id="btn_dot2svg">gen svg</button>
+    </div>
+
+
+    <script>
+        /**
+         * gen dot svg
+         * @param {string} id
+         * @param {string} sss
+         * @returns {void}
+         */
+        function gendot(id, sss) {
+            d3.select(id).graphviz().renderDot(sss);
+        }
+    </script>
 </body>
 
 </html>

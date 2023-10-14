@@ -16,7 +16,10 @@
   "author": "windwiny",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^18.11.18",
-    "antlr4": "*4.12.0-beta.5"
+    "@types/node": "^18.18.5",
+    "antlr4": "^4.13.1"
+  },
+  "dependencies": {
+    "md5": "^2.3.0"
   }
 }

@@ -321,9 +321,8 @@ module SANUtil
   # parse log file
   # generate /tmp/ttt2/xxx/*.log
   def self.parse_file(fn)
-    bd = File.directory?("/tmp") ? "/tmp/ttt2" : "c:"
+    bd = File.directory?("/tmp") ? "/tmp/ttt2" : "."
     tmpdir = "#{bd}/sanlog-#{File.basename(fn).chomp(File.extname fn)}-#{Time.now.strftime '%H%M%S'}"
-    FileUtils.mkdir_p(tmpdir) unless File.directory?(tmpdir)
 
     zoneshow_s = find_zoneshow_str_from_log(File.binread fn)
     if zoneshow_s.empty?
@@ -335,6 +334,7 @@ module SANUtil
     defx2, effx2 = SANZoneStringManualParser.new.scan_str(zoneshow_s)
     dif1, dif2 = [defx1 == defx2, effx1 == effx2]
 
+    FileUtils.mkdir_p(tmpdir) unless File.directory?(tmpdir)
     File.open("#{tmpdir}/0-parse_summary.log", 'w') do |f|
       STDERR.puts f.path
       f.puts "\n### Same Result on RACCParser and StringManualParser ? \n [#{dif1}, #{dif2}]"
